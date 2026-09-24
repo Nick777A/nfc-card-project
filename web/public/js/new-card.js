@@ -14,9 +14,11 @@
 
   const slugInput = document.getElementById('slug');
   const slugPreview = document.getElementById('slug-preview');
-  const base = slugPreview.textContent.replace(/\/u\/\.\.\.$/, '');
-  slugInput.addEventListener('input', () => {
-    const value = slugInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '') || '...';
-    slugPreview.textContent = `${base}/u/${value}`;
-  });
+  if (slugInput && slugPreview) {
+    const base = slugPreview.textContent.replace(/\/u\/\.\.\.$/, '');
+    slugInput.addEventListener('input', () => {
+      const value = slugInput.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '') || '...';
+      slugPreview.textContent = `${base}/u/${value}`;
+    });
+  }
 })();

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Изменить: <%= card.label %> — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <p><a href="/admin/cards/<%= card.id %>">← Назад к карточке</a></p>
+
+    <div class="card">
+      <h1>Изменить карточку</h1>
+      <p class="hint" style="margin-top:-8px; margin-bottom:20px;">
+        Короткий адрес карточки нельзя изменить здесь — он уже мог быть записан на физическую метку.
+        Ссылка: <strong><%= card.slug %></strong>
+      </p>
+
+      <% if (error) { %>
+        <div class="error-box"><%= error %></div>
+      <% } %>
+
+      <form method="post" action="/admin/cards/<%= card.id %>/edit" enctype="multipart/form-data" id="card-form">
+        <div class="type-picker" id="type-picker">
+          <label><input type="radio" name="type" value="profile" <%= card.type === 'profile' ? 'checked' : '' %> /><span>Профиль (визитка)</span></label>
+          <label><input type="radio" name="type" value="url" <%= card.type === 'url' ? 'checked' : '' %> /><span>Внешний сайт</span></label>
+          <label><input type="radio" name="type" value="image" <%= card.type === 'image' ? 'checked' : '' %> /><span>Картинка</span></label>
+          <label><input type="radio" name="type" value="wifi" <%= card.type === 'wifi' ? 'checked' : '' %> /><span>Wi‑Fi</span></label>
+          <label><input type="radio" name="type" value="custom" <%= card.type === 'custom' ? 'checked' : '' %> /><span>Свой текст/ссылка</span></label>
+        </div>
+
+        <div class="field">
+          <label for="label">Название карточки (для вас, в списке)</label>
+          <input type="text" id="label" name="label" value="<%= card.label %>" />
+        </div>
+
+        <div class="type-section" data-type="profile">
+          <div class="field">
+            <label for="fullName">Имя и фамилия</label>
+            <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
+          </div>
+          <div class="field">
+            <label for="phone">Телефон</label>
+            <input type="tel" id="phone" name="phone" value="<%= card.phone || '' %>" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="<%= card.email || '' %>" />
+          </div>
+          <div class="field">
+            <label for="company">Компания</label>
+            <input type="text" id="company" name="company" value="<%= card.company || '' %>" />
+          </div>
+          <div class="field">
+            <label for="jobTitle">Должность</label>
+            <input type="text" id="jobTitle" name="jobTitle" value="<%= card.jobTitle || '' %>" />
+          </div>
+          <div class="field">
+            <label for="links">Ссылки (по одной на строку)</label>
+            <textarea id="links" name="links"><%= (card.links || []).join('\n') %></textarea>
+          </div>
+        </div>
+
+        <div class="type-section" data-type="url">
+          <div class="field">
+            <label for="targetUrl">Ссылка на их сайт / соцсеть</label>
+            <input type="text" id="targetUrl" name="targetUrl" value="<%= card.targetUrl || '' %>" />
+          </div>
+        </div>
+
+        <div class="type-section" data-type="image">
+          <div class="field">
+            <label for="imageUrl">Ссылка на картинку (или загрузите файл ниже)</label>
+            <input type="text" id="imageUrl" name="imageUrl" value="<%= (card.imageUrl || '').startsWith('/uploads/') ? '' : (card.imageUrl || '') %>" />
+          </div>
+          <div class="field">
+            <label for="image">Загрузить новую картинку</label>
+            <input type="file" id="image" name="image" accept="image/*" />
+            <% if (card.imageUrl) { %><p class="hint">Текущая: <a href="<%= card.imageUrl %>" target="_blank"><%= card.imageUrl %></a></p><% } %>
+          </div>
+        </div>
+
+        <div class="type-section" data-type="wifi">
+          <div class="field">
+            <label for="wifiSsid">Имя сети (SSID)</label>
+            <input type="text" id="wifiSsid" name="wifiSsid" value="<%= card.wifiSsid || '' %>" />
+          </div>
+          <div class="field">
+            <label for="wifiPassword">Пароль</label>
+            <input type="text" id="wifiPassword" name="wifiPassword" value="<%= card.wifiPassword || '' %>" />
+          </div>
+          <div class="field">
+            <label for="wifiEncryption">Шифрование</label>
+            <select id="wifiEncryption" name="wifiEncryption">
+              <option value="WPA" <%= card.wifiEncryption === 'WPA' ? 'selected' : '' %>>WPA/WPA2</option>
+              <option value="WEP" <%= card.wifiEncryption === 'WEP' ? 'selected' : '' %>>WEP</option>
+              <option value="nopass" <%= card.wifiEncryption === 'nopass' ? 'selected' : '' %>>Без пароля</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="type-section" data-type="custom">
+          <div class="field">
+            <label for="customPayload">Что именно записать на карту</label>
+            <textarea id="customPayload" name="customPayload"><%= card.customPayload || '' %></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Сохранить изменения</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/new-card.js"></script>
+</body>
+</html>

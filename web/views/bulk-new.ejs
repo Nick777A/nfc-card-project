@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Массовое создание — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <div class="card">
+      <h1>Массовое создание карточек-профилей из CSV</h1>
+      <p class="hint" style="margin-top:-8px; margin-bottom:20px;">
+        Для событий с большим количеством людей: одна строка CSV — одна карточка типа «Профиль».
+        Обязательная колонка — <code>fullName</code>. Необязательные: <code>phone</code>, <code>email</code>,
+        <code>company</code>, <code>jobTitle</code>, <code>links</code> (несколько ссылок через запятую).
+      </p>
+
+      <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+      <% if (created) { %>
+        <div class="success-box">Создано карточек: <%= created.length %></div>
+        <table class="cards-table">
+          <thead><tr><th>Имя</th><th>Ссылка</th></tr></thead>
+          <tbody>
+            <% created.forEach(function(c) { %>
+              <tr><td><%= c.label %></td><td><a href="<%= c.url %>" target="_blank"><%= c.url %></a></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <p style="margin-top:16px;"><a href="/admin">← К списку всех карточек</a></p>
+      <% } else { %>
+        <form method="post" action="/admin/cards/bulk" enctype="multipart/form-data">
+          <div class="field">
+            <label for="csvText">Вставить CSV сюда</label>
+            <textarea id="csvText" name="csvText" rows="6" placeholder="fullName,phone,email,company,jobTitle&#10;Иван Петров,+37455512345,ivan@example.com,Sciences Po,Founder"></textarea>
+          </div>
+          <p class="hint" style="text-align:center; margin: 4px 0 16px;">— или —</p>
+          <div class="field">
+            <label for="csvFile">Загрузить .csv файл</label>
+            <input type="file" id="csvFile" name="csvFile" accept=".csv,text/csv" />
+          </div>
+          <button type="submit" class="btn">Создать карточки</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

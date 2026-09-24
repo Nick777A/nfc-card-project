@@ -9,8 +9,23 @@
   <div class="container">
     <div class="row" style="justify-content: space-between; margin-bottom: 16px;">
       <h1 style="margin:0;">Карточки (<%= cards.length %>)</h1>
-      <a class="btn" href="/admin/cards/new">+ Новая карточка</a>
+      <div class="row">
+        <a class="btn secondary" href="/admin/cards/bulk">Массово из CSV</a>
+        <a class="btn" href="/admin/cards/new">+ Новая карточка</a>
+      </div>
     </div>
+
+    <% if (cards.length > 0) { %>
+      <div class="row" style="margin-bottom: 16px;">
+        <% Object.entries(stats).forEach(function([type, count]) { %>
+          <span class="badge"><%= type %>: <%= count %></span>
+        <% }) %>
+      </div>
+
+      <div class="field" style="max-width:320px;">
+        <input type="text" id="search-input" placeholder="Поиск по названию, типу, адресу..." />
+      </div>
+    <% } %>
 
     <% if (cards.length === 0) { %>
       <div class="card">
@@ -18,24 +33,29 @@
       </div>
     <% } else { %>
       <div class="card" style="padding:0;">
-        <table class="cards-table">
+        <table class="cards-table" id="cards-table">
           <thead>
             <tr>
               <th>Название</th>
               <th>Тип</th>
               <th>Ссылка / адрес</th>
+              <th>Просмотры</th>
               <th>Создана</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <% cards.forEach(function(card) { %>
-              <tr>
+              <tr data-search="<%= [card.label, card.type, card.slug].join(' ').toLowerCase() %>">
                 <td><a href="/admin/cards/<%= card.id %>"><%= card.label %></a></td>
                 <td><span class="badge"><%= card.type %></span></td>
                 <td><%= base %>/u/<%= card.slug %></td>
+                <td><%= card.viewCount || 0 %></td>
                 <td><%= new Date(card.createdAt).toLocaleString('ru-RU') %></td>
-                <td><a href="/admin/cards/<%= card.id %>">Открыть →</a></td>
+                <td class="row" style="gap:8px;">
+                  <a href="/admin/cards/<%= card.id %>">Открыть</a>
+                  <a href="/admin/cards/<%= card.id %>/edit">Изменить</a>
+                </td>
               </tr>
             <% }) %>
           </tbody>
@@ -43,5 +63,6 @@
       </div>
     <% } %>
   </div>
+  <script src="/js/dashboard.js"></script>
 </body>
 </html>

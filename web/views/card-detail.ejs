@@ -14,6 +14,9 @@
         <h1 style="margin:0;"><%= card.label %></h1>
         <span class="badge"><%= card.type %></span>
       </div>
+      <p class="status-line">
+        Просмотров: <%= card.viewCount || 0 %><% if (card.lastViewedAt) { %> · последний: <%= new Date(card.lastViewedAt).toLocaleString('ru-RU') %><% } %>
+      </p>
 
       <h2 style="margin-top:24px;">Что записать на физическую NFC-карту</h2>
       <div class="payload-box" id="payload-text"><%= payload %></div>
@@ -35,6 +38,14 @@
       <div class="qr-wrap">
         <img src="<%= qrDataUrl %>" alt="QR-код" width="220" height="220" />
         <p class="hint">QR-код с тем же содержимым — можно сразу отсканировать</p>
+        <a class="btn secondary" href="/admin/cards/<%= card.id %>/qr.png">Скачать QR (PNG)</a>
+      </div>
+
+      <div class="row" style="margin-top:20px;">
+        <a class="btn secondary" href="/admin/cards/<%= card.id %>/edit">Изменить</a>
+        <form method="post" action="/admin/cards/<%= card.id %>/duplicate" class="inline-form">
+          <button type="submit" class="btn secondary">Дублировать</button>
+        </form>
       </div>
     </div>
 

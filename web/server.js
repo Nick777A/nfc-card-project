@@ -9,6 +9,8 @@ const QRCode = require('qrcode');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
+const { parse: parseCsv } = require('csv-parse/sync');
+
 const db = require('./src/db');
 const { generateSlug, buildVCard, resolveTagPayload } = require('./src/cardPayload');
 
@@ -79,6 +81,9 @@ const upload = multer({
   }
 });
 
+// Small text-file uploads (JSON backups, CSV bulk-import) never need to touch disk.
+const memoryUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
 function baseUrl(req) {
   return process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
 }
@@ -86,6 +91,30 @@ function baseUrl(req) {
 function requireAuth(req, res, next) {
   if (req.session && req.session.isAdmin) return next();
   return res.redirect('/login');
+}
+
+/** Shared by create and edit: pulls all type-specific content fields out of a form submission. */
+function cardFieldsFromBody(body, file, existingImageUrl) {
+  return {
+    type: body.type,
+    label: (body.label || body.fullName || body.targetUrl || body.wifiSsid || 'Карточка').trim(),
+    // profile
+    fullName: body.fullName || '',
+    phone: body.phone || '',
+    email: body.email || '',
+    company: body.company || '',
+    jobTitle: body.jobTitle || '',
+    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean),
+    // url / image
+    targetUrl: body.targetUrl || '',
+    imageUrl: file ? `/uploads/${file.filename}` : body.imageUrl || existingImageUrl || '',
+    // wifi
+    wifiSsid: body.wifiSsid || '',
+    wifiPassword: body.wifiPassword || '',
+    wifiEncryption: body.wifiEncryption || 'WPA',
+    // custom
+    customPayload: body.customPayload || ''
+  };
 }
 
 // Pinged by a scheduled GitHub Action to stop the free Render instance from
@@ -118,7 +147,11 @@ app.get('/', (req, res) => res.redirect(req.session.isAdmin ? '/admin' : '/login
 
 app.get('/admin', requireAuth, (req, res) => {
   const cards = db.listCards();
-  res.render('dashboard', { cards, base: baseUrl(req) });
+  const stats = cards.reduce((acc, c) => {
+    acc[c.type] = (acc[c.type] || 0) + 1;
+    return acc;
+  }, {});
+  res.render('dashboard', { cards, stats, base: baseUrl(req) });
 });
 
 app.get('/admin/cards/new', requireAuth, (req, res) => {
@@ -127,10 +160,8 @@ app.get('/admin/cards/new', requireAuth, (req, res) => {
 
 app.post('/admin/cards/new', requireAuth, upload.single('image'), (req, res) => {
   const body = req.body;
-  const type = body.type;
-  const label = (body.label || body.fullName || body.targetUrl || body.wifiSsid || 'Карточка').trim();
 
-  if (!type) {
+  if (!body.type) {
     return res.render('new-card', { error: 'Выберите тип карточки', values: body });
   }
 
@@ -143,29 +174,109 @@ app.post('/admin/cards/new', requireAuth, upload.single('image'), (req, res) => 
   const card = {
     id: crypto.randomUUID(),
     slug,
-    type,
-    label,
     createdAt: Date.now(),
-    // profile
-    fullName: body.fullName || '',
-    phone: body.phone || '',
-    email: body.email || '',
-    company: body.company || '',
-    jobTitle: body.jobTitle || '',
-    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean),
-    // url / image
-    targetUrl: body.targetUrl || '',
-    imageUrl: req.file ? `/uploads/${req.file.filename}` : body.imageUrl || '',
-    // wifi
-    wifiSsid: body.wifiSsid || '',
-    wifiPassword: body.wifiPassword || '',
-    wifiEncryption: body.wifiEncryption || 'WPA',
-    // custom
-    customPayload: body.customPayload || ''
+    viewCount: 0,
+    lastViewedAt: null,
+    ...cardFieldsFromBody(body, req.file)
   };
 
   db.addCard(card);
   res.redirect(`/admin/cards/${card.id}`);
+});
+
+app.get('/admin/cards/:id/edit', requireAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card) return res.status(404).send('Карточка не найдена');
+  res.render('edit-card', { card, error: null });
+});
+
+app.post('/admin/cards/:id/edit', requireAuth, upload.single('image'), (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card) return res.status(404).send('Карточка не найдена');
+
+  if (!req.body.type) {
+    return res.render('edit-card', { card, error: 'Выберите тип карточки' });
+  }
+
+  const updated = cardFieldsFromBody(req.body, req.file, card.imageUrl);
+  db.updateCard(card.id, { ...updated, updatedAt: Date.now() });
+  res.redirect(`/admin/cards/${card.id}`);
+});
+
+app.post('/admin/cards/:id/duplicate', requireAuth, (req, res) => {
+  const source = db.getCardById(req.params.id);
+  if (!source) return res.status(404).send('Карточка не найдена');
+
+  const { id, slug, createdAt, viewCount, lastViewedAt, updatedAt, ...content } = source;
+  const copy = {
+    id: crypto.randomUUID(),
+    slug: generateSlug(),
+    createdAt: Date.now(),
+    viewCount: 0,
+    lastViewedAt: null,
+    ...content,
+    label: `${content.label} (копия)`
+  };
+  db.addCard(copy);
+  res.redirect(`/admin/cards/${copy.id}`);
+});
+
+app.get('/admin/cards/bulk', requireAuth, (req, res) => {
+  res.render('bulk-new', { error: null, created: null });
+});
+
+app.post('/admin/cards/bulk', requireAuth, memoryUpload.single('csvFile'), (req, res) => {
+  const csvText = req.file ? req.file.buffer.toString('utf-8') : req.body.csvText || '';
+  if (!csvText.trim()) {
+    return res.render('bulk-new', { error: 'Вставьте CSV-текст или загрузите файл', created: null });
+  }
+
+  let rows;
+  try {
+    rows = parseCsv(csvText, { columns: true, skip_empty_lines: true, trim: true });
+  } catch (e) {
+    return res.render('bulk-new', { error: `Не удалось разобрать CSV: ${e.message}`, created: null });
+  }
+
+  if (rows.length === 0) {
+    return res.render('bulk-new', { error: 'В файле не найдено ни одной строки с данными', created: null });
+  }
+
+  const created = [];
+  for (const row of rows) {
+    const fullName = (row.fullName || row.name || row['Имя'] || '').trim();
+    if (!fullName) continue; // skip rows without at least a name
+    let slug = generateSlug();
+    while (db.slugTaken(slug)) slug = generateSlug();
+    const card = {
+      id: crypto.randomUUID(),
+      slug,
+      type: 'profile',
+      label: fullName,
+      createdAt: Date.now(),
+      viewCount: 0,
+      lastViewedAt: null,
+      fullName,
+      phone: row.phone || row['Телефон'] || '',
+      email: row.email || row['Email'] || '',
+      company: row.company || row['Компания'] || '',
+      jobTitle: row.jobTitle || row['Должность'] || '',
+      links: (row.links || '').split(/[,;]/).map((l) => l.trim()).filter(Boolean),
+      targetUrl: '',
+      imageUrl: '',
+      wifiSsid: '',
+      wifiPassword: '',
+      wifiEncryption: 'WPA',
+      customPayload: ''
+    };
+    db.addCard(card);
+    created.push(card);
+  }
+
+  res.render('bulk-new', {
+    error: created.length === 0 ? 'Ни одна строка не содержала колонку fullName/name' : null,
+    created: created.map((c) => ({ label: c.label, url: `${baseUrl(req)}/u/${c.slug}` }))
+  });
 });
 
 app.get('/admin/cards/:id', requireAuth, async (req, res) => {
@@ -174,6 +285,16 @@ app.get('/admin/cards/:id', requireAuth, async (req, res) => {
   const payload = resolveTagPayload(card, baseUrl(req));
   const qrDataUrl = await QRCode.toDataURL(payload, { margin: 1, width: 260 });
   res.render('card-detail', { card, payload, qrDataUrl, base: baseUrl(req) });
+});
+
+app.get('/admin/cards/:id/qr.png', requireAuth, async (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card) return res.status(404).send('Карточка не найдена');
+  const payload = resolveTagPayload(card, baseUrl(req));
+  const buffer = await QRCode.toBuffer(payload, { margin: 1, width: 1024, type: 'png' });
+  res.set('Content-Type', 'image/png');
+  res.set('Content-Disposition', `attachment; filename="qr-${card.slug}.png"`);
+  res.send(buffer);
 });
 
 app.post('/admin/cards/:id/delete', requireAuth, (req, res) => {
@@ -196,9 +317,7 @@ app.get('/admin/import', requireAuth, (req, res) => {
   res.render('import', { error: null, success: null });
 });
 
-const backupUpload = multer({ limits: { fileSize: 5 * 1024 * 1024 } });
-
-app.post('/admin/import', requireAuth, backupUpload.single('backupFile'), (req, res) => {
+app.post('/admin/import', requireAuth, memoryUpload.single('backupFile'), (req, res) => {
   if (!req.file) return res.render('import', { error: 'Выберите файл резервной копии', success: null });
   try {
     const parsed = JSON.parse(req.file.buffer.toString('utf-8'));
@@ -235,6 +354,8 @@ app.post('/admin/change-password', requireAuth, (req, res) => {
 app.get('/u/:slug', (req, res) => {
   const card = db.getCardBySlug(req.params.slug);
   if (!card) return res.status(404).render('not-found');
+
+  db.recordView(card.id);
 
   switch (card.type) {
     case 'url':

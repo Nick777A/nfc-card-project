@@ -73,8 +73,15 @@ module.exports = {
     state.cards = state.cards.filter((c) => c.id !== id);
     save(state);
   },
-  slugTaken(slug) {
-    return state.cards.some((c) => c.slug === slug);
+  slugTaken(slug, excludeId) {
+    return state.cards.some((c) => c.slug === slug && c.id !== excludeId);
+  },
+  recordView(id) {
+    const card = state.cards.find((c) => c.id === id);
+    if (!card) return;
+    card.viewCount = (card.viewCount || 0) + 1;
+    card.lastViewedAt = Date.now();
+    save(state);
   },
   exportCards() {
     return state.cards;
