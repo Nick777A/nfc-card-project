@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
@@ -61,9 +62,12 @@ const loginLimiter = rateLimit({
   message: 'Слишком много попыток входа, попробуйте позже'
 });
 
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+
 const upload = multer({
   storage: multer.diskStorage({
-    destination: path.join(__dirname, 'public', 'uploads'),
+    destination: uploadsDir,
     filename: (req, file, cb) => {
       const ext = path.extname(file.originalname).slice(0, 10);
       cb(null, `${crypto.randomBytes(8).toString('hex')}${ext}`);
