@@ -155,20 +155,20 @@ app.get('/admin', requireAuth, (req, res) => {
 });
 
 app.get('/admin/cards/new', requireAuth, (req, res) => {
-  res.render('new-card', { error: null, values: {} });
+  res.render('new-card', { error: null, values: {}, base: baseUrl(req) });
 });
 
 app.post('/admin/cards/new', requireAuth, upload.single('image'), (req, res) => {
   const body = req.body;
 
   if (!body.type) {
-    return res.render('new-card', { error: 'Выберите тип карточки', values: body });
+    return res.render('new-card', { error: 'Выберите тип карточки', values: body, base: baseUrl(req) });
   }
 
   let slug = (body.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
   if (!slug) slug = generateSlug();
   if (db.slugTaken(slug)) {
-    return res.render('new-card', { error: 'Такой короткий адрес уже занят, выберите другой', values: body });
+    return res.render('new-card', { error: 'Такой короткий адрес уже занят, выберите другой', values: body, base: baseUrl(req) });
   }
 
   const card = {
