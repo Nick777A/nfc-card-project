@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Карточки — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <div class="row" style="justify-content: space-between; margin-bottom: 16px;">
+      <h1 style="margin:0;">Карточки (<%= cards.length %>)</h1>
+      <a class="btn" href="/admin/cards/new">+ Новая карточка</a>
+    </div>
+
+    <% if (cards.length === 0) { %>
+      <div class="card">
+        <p>Пока нет ни одной карточки. Нажмите «Новая карточка», чтобы создать первую — займёт несколько секунд.</p>
+      </div>
+    <% } else { %>
+      <div class="card" style="padding:0;">
+        <table class="cards-table">
+          <thead>
+            <tr>
+              <th>Название</th>
+              <th>Тип</th>
+              <th>Ссылка / адрес</th>
+              <th>Создана</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cards.forEach(function(card) { %>
+              <tr>
+                <td><a href="/admin/cards/<%= card.id %>"><%= card.label %></a></td>
+                <td><span class="badge"><%= card.type %></span></td>
+                <td><%= base %>/u/<%= card.slug %></td>
+                <td><%= new Date(card.createdAt).toLocaleString('ru-RU') %></td>
+                <td><a href="/admin/cards/<%= card.id %>">Открыть →</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

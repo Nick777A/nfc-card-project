@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title><%= card.type === 'profile' ? (card.fullName || 'Профиль') : card.label %></title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <div class="profile-page">
+    <% if (card.type === 'profile') { %>
+      <div class="profile-avatar"><%= (card.fullName || '?').trim().charAt(0).toUpperCase() %></div>
+      <p class="profile-name"><%= card.fullName %></p>
+      <% if (card.jobTitle || card.company) { %>
+        <p class="profile-sub"><%= [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
+      <% } %>
+
+      <a class="btn" href="/u/<%= card.slug %>/vcard">Сохранить контакт (.vcf)</a>
+
+      <div class="profile-list">
+        <% if (card.phone) { %>
+          <div class="row-item"><span>Телефон</span><a href="tel:<%= card.phone %>"><%= card.phone %></a></div>
+        <% } %>
+        <% if (card.email) { %>
+          <div class="row-item"><span>Email</span><a href="mailto:<%= card.email %>"><%= card.email %></a></div>
+        <% } %>
+        <% (card.links || []).forEach(function(link) { %>
+          <div class="row-item"><span>Ссылка</span><a href="<%= link %>" target="_blank"><%= link %></a></div>
+        <% }) %>
+      </div>
+
+    <% } else if (card.type === 'wifi') { %>
+      <div class="profile-avatar">📶</div>
+      <p class="profile-name"><%= card.wifiSsid %></p>
+      <p class="profile-sub">Сеть Wi‑Fi</p>
+      <div class="profile-list">
+        <div class="row-item"><span>Пароль</span><span><%= card.wifiPassword || '—' %></span></div>
+      </div>
+      <p class="hint">Если телефон не подключился автоматически при поднесении карты, введите эти данные в настройках Wi‑Fi вручную.</p>
+
+    <% } else { %>
+      <div class="profile-avatar">🔗</div>
+      <p class="profile-name"><%= card.label %></p>
+      <div class="payload-box" style="text-align:left; margin-top: 20px;"><%= card.customPayload %></div>
+    <% } %>
+  </div>
+</body>
+</html>

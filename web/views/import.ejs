@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Восстановление из бэкапа — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container narrow">
+    <div class="card">
+      <h1>Восстановить карточки из файла</h1>
+      <p class="hint" style="margin-top:-8px;">
+        Загрузите файл, скачанный через «Экспорт» — это полностью заменит текущий список карточек.
+      </p>
+      <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+      <% if (success) { %><div class="success-box"><%= success %></div><% } %>
+      <form method="post" action="/admin/import" enctype="multipart/form-data">
+        <div class="field">
+          <label for="backupFile">Файл резервной копии (.json)</label>
+          <input type="file" id="backupFile" name="backupFile" accept="application/json" required />
+        </div>
+        <button type="submit" class="btn">Восстановить</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

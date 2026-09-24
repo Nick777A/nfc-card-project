@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nfc-card-web
+    runtime: node
+    plan: free
+    rootDir: web
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        sync: false

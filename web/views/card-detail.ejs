@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title><%= card.label %> — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <p><a href="/admin">← Все карточки</a></p>
+
+    <div class="card">
+      <div class="row" style="justify-content: space-between;">
+        <h1 style="margin:0;"><%= card.label %></h1>
+        <span class="badge"><%= card.type %></span>
+      </div>
+
+      <h2 style="margin-top:24px;">Что записать на физическую NFC-карту</h2>
+      <div class="payload-box" id="payload-text"><%= payload %></div>
+      <div class="row">
+        <button class="btn secondary" id="copy-btn" type="button">Скопировать</button>
+        <button class="btn" id="nfc-write-btn" type="button" style="display:none;">📲 Записать на карту (поднесите к телефону)</button>
+      </div>
+      <p class="status-line" id="nfc-status"></p>
+      <p class="hint" id="nfc-unsupported">
+        Запись прямо из браузера доступна в Chrome для Android (по HTTPS или на localhost) на телефоне с NFC.
+        На этом устройстве недоступна — используйте приложение записи NFC-меток (например, «NFC Tools») и вставьте туда строку выше,
+        либо отсканируйте QR-код ниже для отправки данных на телефон с Chrome.
+      </p>
+
+      <% if (card.type === 'profile' || card.type === 'wifi' || card.type === 'custom') { %>
+        <p><a href="/u/<%= card.slug %>" target="_blank"><%= base %>/u/<%= card.slug %> →</a></p>
+      <% } %>
+
+      <div class="qr-wrap">
+        <img src="<%= qrDataUrl %>" alt="QR-код" width="220" height="220" />
+        <p class="hint">QR-код с тем же содержимым — можно сразу отсканировать</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Детали</h2>
+      <table class="cards-table">
+        <% if (card.type === 'profile') { %>
+          <tr><th>Имя</th><td><%= card.fullName %></td></tr>
+          <tr><th>Телефон</th><td><%= card.phone %></td></tr>
+          <tr><th>Email</th><td><%= card.email %></td></tr>
+          <tr><th>Компания</th><td><%= card.company %></td></tr>
+          <tr><th>Должность</th><td><%= card.jobTitle %></td></tr>
+        <% } else if (card.type === 'url') { %>
+          <tr><th>Целевой адрес</th><td><a href="<%= card.targetUrl %>" target="_blank"><%= card.targetUrl %></a></td></tr>
+        <% } else if (card.type === 'image') { %>
+          <tr><th>Картинка</th><td><a href="<%= card.imageUrl %>" target="_blank"><%= card.imageUrl %></a></td></tr>
+        <% } else if (card.type === 'wifi') { %>
+          <tr><th>Сеть</th><td><%= card.wifiSsid %></td></tr>
+          <tr><th>Шифрование</th><td><%= card.wifiEncryption %></td></tr>
+        <% } else if (card.type === 'custom') { %>
+          <tr><th>Payload</th><td><%= card.customPayload %></td></tr>
+        <% } %>
+        <tr><th>Создана</th><td><%= new Date(card.createdAt).toLocaleString('ru-RU') %></td></tr>
+      </table>
+    </div>
+
+    <form method="post" action="/admin/cards/<%= card.id %>/delete" style="margin-top:16px;" id="delete-card-form">
+      <button type="submit" class="btn danger">Удалить карточку</button>
+    </form>
+  </div>
+
+  <script src="/js/card-detail.js"></script>
+</body>
+</html>

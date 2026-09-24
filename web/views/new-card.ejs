@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Новая карточка — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <div class="card">
+      <h1>Новая карточка</h1>
+      <p class="hint" style="margin-top:-8px; margin-bottom:20px;">
+        Выберите, что будет открываться при поднесении физической NFC-карты к телефону, заполните пару полей и сохраните.
+      </p>
+
+      <% if (error) { %>
+        <div class="error-box"><%= error %></div>
+      <% } %>
+
+      <form method="post" action="/admin/cards/new" enctype="multipart/form-data" id="card-form">
+        <div class="type-picker" id="type-picker">
+          <label><input type="radio" name="type" value="profile" checked /><span>Профиль (визитка)</span></label>
+          <label><input type="radio" name="type" value="url" /><span>Внешний сайт</span></label>
+          <label><input type="radio" name="type" value="image" /><span>Картинка</span></label>
+          <label><input type="radio" name="type" value="wifi" /><span>Wi‑Fi</span></label>
+          <label><input type="radio" name="type" value="custom" /><span>Свой текст/ссылка</span></label>
+        </div>
+
+        <div class="field">
+          <label for="label">Название карточки (для вас, в списке)</label>
+          <input type="text" id="label" name="label" placeholder="Например: Иван Петров, стенд №4" />
+        </div>
+
+        <div class="field">
+          <label for="slug">Короткий адрес (необязательно)</label>
+          <input type="text" id="slug" name="slug" placeholder="оставьте пустым — сгенерируется само" />
+          <div class="hint">Итоговая ссылка: <span id="slug-preview"><%= base %>/u/...</span></div>
+        </div>
+
+        <!-- Profile fields -->
+        <div class="type-section" data-type="profile">
+          <div class="field">
+            <label for="fullName">Имя и фамилия</label>
+            <input type="text" id="fullName" name="fullName" value="<%= values.fullName || '' %>" />
+          </div>
+          <div class="field">
+            <label for="phone">Телефон</label>
+            <input type="tel" id="phone" name="phone" value="<%= values.phone || '' %>" />
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="<%= values.email || '' %>" />
+          </div>
+          <div class="field">
+            <label for="company">Компания</label>
+            <input type="text" id="company" name="company" value="<%= values.company || '' %>" />
+          </div>
+          <div class="field">
+            <label for="jobTitle">Должность</label>
+            <input type="text" id="jobTitle" name="jobTitle" value="<%= values.jobTitle || '' %>" />
+          </div>
+          <div class="field">
+            <label for="links">Ссылки (по одной на строку)</label>
+            <textarea id="links" name="links"><%= values.links || '' %></textarea>
+          </div>
+        </div>
+
+        <!-- URL fields -->
+        <div class="type-section" data-type="url">
+          <div class="field">
+            <label for="targetUrl">Ссылка на их сайт / соцсеть</label>
+            <input type="text" id="targetUrl" name="targetUrl" placeholder="https://..." />
+          </div>
+          <p class="hint">На карту запишется короткая ссылка нашего сервиса, которая ведёт на этот адрес — если адрес изменится, физическую карту перезаписывать не нужно, достаточно поменять его здесь.</p>
+        </div>
+
+        <!-- Image fields -->
+        <div class="type-section" data-type="image">
+          <div class="field">
+            <label for="imageUrl">Ссылка на картинку (или загрузите файл ниже)</label>
+            <input type="text" id="imageUrl" name="imageUrl" placeholder="https://..." />
+          </div>
+          <div class="field">
+            <label for="image">Загрузить картинку</label>
+            <input type="file" id="image" name="image" accept="image/*" />
+          </div>
+        </div>
+
+        <!-- Wifi fields -->
+        <div class="type-section" data-type="wifi">
+          <div class="field">
+            <label for="wifiSsid">Имя сети (SSID)</label>
+            <input type="text" id="wifiSsid" name="wifiSsid" />
+          </div>
+          <div class="field">
+            <label for="wifiPassword">Пароль</label>
+            <input type="text" id="wifiPassword" name="wifiPassword" />
+          </div>
+          <div class="field">
+            <label for="wifiEncryption">Шифрование</label>
+            <select id="wifiEncryption" name="wifiEncryption">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">Без пароля</option>
+            </select>
+          </div>
+          <p class="hint">Для Wi‑Fi на карту записывается «сырой» Wi‑Fi-код (не наша ссылка) — так телефоны умеют подключаться к сети автоматически при поднесении карты или сканировании QR.</p>
+        </div>
+
+        <!-- Custom fields -->
+        <div class="type-section" data-type="custom">
+          <div class="field">
+            <label for="customPayload">Что именно записать на карту</label>
+            <textarea id="customPayload" name="customPayload" placeholder="Любой текст или ссылка"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn">Создать</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/new-card.js"></script>
+</body>
+</html>
