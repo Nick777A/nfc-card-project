@@ -177,6 +177,7 @@ app.post('/admin/cards/new', requireAuth, upload.single('image'), (req, res) => 
     createdAt: Date.now(),
     viewCount: 0,
     lastViewedAt: null,
+    active: true,
     ...cardFieldsFromBody(body, req.file)
   };
 
@@ -214,6 +215,7 @@ app.post('/admin/cards/:id/duplicate', requireAuth, (req, res) => {
     createdAt: Date.now(),
     viewCount: 0,
     lastViewedAt: null,
+    active: true,
     ...content,
     label: `${content.label} (копия)`
   };
@@ -256,6 +258,7 @@ app.post('/admin/cards/bulk', requireAuth, memoryUpload.single('csvFile'), (req,
       createdAt: Date.now(),
       viewCount: 0,
       lastViewedAt: null,
+      active: true,
       fullName,
       phone: row.phone || row['Телефон'] || '',
       email: row.email || row['Email'] || '',
@@ -297,6 +300,15 @@ app.get('/admin/cards/:id/qr.png', requireAuth, async (req, res) => {
   res.send(buffer);
 });
 
+app.post('/admin/cards/:id/toggle-active', requireAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card) return res.status(404).send('Карточка не найдена');
+  const isCurrentlyActive = card.active !== false;
+  db.updateCard(card.id, { active: !isCurrentlyActive });
+  const referer = req.get('Referer') || '';
+  res.redirect(referer.includes('/admin/cards/') ? `/admin/cards/${card.id}` : '/admin');
+});
+
 app.post('/admin/cards/:id/delete', requireAuth, (req, res) => {
   db.deleteCard(req.params.id);
   res.redirect('/admin');
@@ -311,6 +323,38 @@ app.get('/admin/export', requireAuth, (req, res) => {
   res.set('Content-Type', 'application/json; charset=utf-8');
   res.set('Content-Disposition', `attachment; filename="nfc-cards-backup-${Date.now()}.json"`);
   res.send(JSON.stringify(data, null, 2));
+});
+
+app.get('/admin/export.csv', requireAuth, (req, res) => {
+  const columns = ['label', 'type', 'slug', 'fullName', 'phone', 'email', 'company', 'jobTitle', 'viewCount', 'active'];
+  const escapeCsv = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [columns.join(',')];
+  for (const c of db.listCards()) {
+    lines.push(columns.map((col) => escapeCsv(col === 'active' ? (c.active !== false) : c[col])).join(','));
+  }
+  res.set('Content-Type', 'text/csv; charset=utf-8');
+  res.set('Content-Disposition', `attachment; filename="nfc-cards-${Date.now()}.csv"`);
+  res.send(lines.join('\r\n'));
+});
+
+// ---------- Printable label sheet: a grid of QR + name per selected card,
+// meant to be printed (or saved as PDF) and cut out next to the physical
+// NFC tags while they're being written. ----------
+
+app.get('/admin/print', requireAuth, async (req, res) => {
+  const idsParam = (req.query.ids || '').toString();
+  const ids = idsParam ? idsParam.split(',').filter(Boolean) : db.listCards().map((c) => c.id);
+  const cards = ids.map((id) => db.getCardById(id)).filter(Boolean);
+
+  const items = await Promise.all(
+    cards.map(async (card) => {
+      const payload = resolveTagPayload(card, baseUrl(req));
+      const qrDataUrl = await QRCode.toDataURL(payload, { margin: 1, width: 300 });
+      return { label: card.label, slug: card.slug, qrDataUrl };
+    })
+  );
+
+  res.render('print', { items });
 });
 
 app.get('/admin/import', requireAuth, (req, res) => {
@@ -356,6 +400,10 @@ app.get('/u/:slug', (req, res) => {
   if (!card) return res.status(404).render('not-found');
 
   db.recordView(card.id);
+
+  if (card.active === false) {
+    return res.status(410).render('disabled');
+  }
 
   switch (card.type) {
     case 'url':

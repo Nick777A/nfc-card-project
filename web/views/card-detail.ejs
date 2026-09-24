@@ -12,11 +12,21 @@
     <div class="card">
       <div class="row" style="justify-content: space-between;">
         <h1 style="margin:0;"><%= card.label %></h1>
-        <span class="badge"><%= card.type %></span>
+        <div class="row">
+          <span class="badge"><%= card.type %></span>
+          <% if (card.active === false) { %>
+            <span class="badge" style="background:#fdecea; color:#d93025;">пауза</span>
+          <% } else { %>
+            <span class="badge" style="background:#e6f4ea; color:#137333;">активна</span>
+          <% } %>
+        </div>
       </div>
       <p class="status-line">
         Просмотров: <%= card.viewCount || 0 %><% if (card.lastViewedAt) { %> · последний: <%= new Date(card.lastViewedAt).toLocaleString('ru-RU') %><% } %>
       </p>
+      <% if (card.active === false) { %>
+        <div class="error-box">Карточка на паузе — публичная страница/редирект не работают, посетители увидят сообщение об отключении.</div>
+      <% } %>
 
       <h2 style="margin-top:24px;">Что записать на физическую NFC-карту</h2>
       <div class="payload-box" id="payload-text"><%= payload %></div>
@@ -45,6 +55,9 @@
         <a class="btn secondary" href="/admin/cards/<%= card.id %>/edit">Изменить</a>
         <form method="post" action="/admin/cards/<%= card.id %>/duplicate" class="inline-form">
           <button type="submit" class="btn secondary">Дублировать</button>
+        </form>
+        <form method="post" action="/admin/cards/<%= card.id %>/toggle-active" class="inline-form">
+          <button type="submit" class="btn secondary"><%= card.active === false ? 'Включить' : 'Поставить на паузу' %></button>
         </form>
       </div>
     </div>

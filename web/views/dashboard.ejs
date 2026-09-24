@@ -16,14 +16,20 @@
     </div>
 
     <% if (cards.length > 0) { %>
-      <div class="row" style="margin-bottom: 16px;">
-        <% Object.entries(stats).forEach(function([type, count]) { %>
-          <span class="badge"><%= type %>: <%= count %></span>
-        <% }) %>
+      <div class="row" style="margin-bottom: 16px; justify-content: space-between;">
+        <div class="row">
+          <% Object.entries(stats).forEach(function([type, count]) { %>
+            <span class="badge"><%= type %>: <%= count %></span>
+          <% }) %>
+        </div>
+        <a href="/admin/print">Распечатать все QR</a>
       </div>
 
-      <div class="field" style="max-width:320px;">
-        <input type="text" id="search-input" placeholder="Поиск по названию, типу, адресу..." />
+      <div class="row" style="margin-bottom: 16px; justify-content: space-between;">
+        <div class="field" style="max-width:320px; margin-bottom:0;">
+          <input type="text" id="search-input" placeholder="Поиск по названию, типу, адресу..." />
+        </div>
+        <button class="btn secondary" id="print-selected-btn" type="button" disabled>Печать выбранных</button>
       </div>
     <% } %>
 
@@ -36,22 +42,30 @@
         <table class="cards-table" id="cards-table">
           <thead>
             <tr>
+              <th></th>
               <th>Название</th>
               <th>Тип</th>
               <th>Ссылка / адрес</th>
               <th>Просмотры</th>
-              <th>Создана</th>
+              <th>Статус</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <% cards.forEach(function(card) { %>
               <tr data-search="<%= [card.label, card.type, card.slug].join(' ').toLowerCase() %>">
+                <td><input type="checkbox" class="card-checkbox" value="<%= card.id %>" /></td>
                 <td><a href="/admin/cards/<%= card.id %>"><%= card.label %></a></td>
                 <td><span class="badge"><%= card.type %></span></td>
                 <td><%= base %>/u/<%= card.slug %></td>
                 <td><%= card.viewCount || 0 %></td>
-                <td><%= new Date(card.createdAt).toLocaleString('ru-RU') %></td>
+                <td>
+                  <% if (card.active === false) { %>
+                    <span class="badge" style="background:#fdecea; color:#d93025;">пауза</span>
+                  <% } else { %>
+                    <span class="badge" style="background:#e6f4ea; color:#137333;">активна</span>
+                  <% } %>
+                </td>
                 <td class="row" style="gap:8px;">
                   <a href="/admin/cards/<%= card.id %>">Открыть</a>
                   <a href="/admin/cards/<%= card.id %>/edit">Изменить</a>

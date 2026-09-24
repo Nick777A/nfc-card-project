@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Печать QR-кодов — NFC Card Admin</title>
+  <%- include('partials/head') %>
+  <style>
+    .print-toolbar { padding: 16px 24px; }
+    .print-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 0 24px 24px;
+    }
+    .print-item {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      break-inside: avoid;
+    }
+    .print-item img { width: 100%; max-width: 200px; }
+    .print-item .name { font-weight: 600; margin-top: 8px; }
+    .print-item .slug { color: var(--text-muted); font-size: 12px; }
+    @media print {
+      .print-toolbar, .admin-nav { display: none; }
+      body { background: white; }
+      .print-item { border: 1px solid #ccc; }
+    }
+  </style>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="print-toolbar row" style="justify-content: space-between;">
+    <a href="/admin">← Все карточки</a>
+    <button class="btn" id="print-btn" type="button">Печать / сохранить как PDF</button>
+  </div>
+
+  <% if (items.length === 0) { %>
+    <div class="container"><div class="card"><p>Нет карточек для печати.</p></div></div>
+  <% } else { %>
+    <div class="print-grid">
+      <% items.forEach(function(item) { %>
+        <div class="print-item">
+          <img src="<%= item.qrDataUrl %>" alt="QR" />
+          <div class="name"><%= item.label %></div>
+          <div class="slug"><%= item.slug %></div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+
+  <script src="/js/print.js"></script>
+</body>
+</html>
