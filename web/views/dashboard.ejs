@@ -7,6 +7,13 @@
 <body>
   <%- include('partials/admin-nav') %>
   <div class="container">
+    <% if (usingDefaultPassword) { %>
+      <div class="error-box">
+        Вы всё ещё используете пароль по умолчанию (<code>admin123</code>) — сайт публичный, смените его в разделе
+        <a href="/admin/change-password">«Пароль»</a>.
+      </div>
+    <% } %>
+
     <div class="row" style="justify-content: space-between; margin-bottom: 16px;">
       <h1 style="margin:0;">Карточки (<%= cards.length %>)</h1>
       <div class="row">
@@ -38,7 +45,7 @@
         <p>Пока нет ни одной карточки. Нажмите «Новая карточка», чтобы создать первую — займёт несколько секунд.</p>
       </div>
     <% } else { %>
-      <div class="card" style="padding:0;">
+      <div class="card table-scroll" style="padding:0;">
         <table class="cards-table" id="cards-table">
           <thead>
             <tr>

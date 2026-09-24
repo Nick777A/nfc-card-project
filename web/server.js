@@ -151,7 +151,8 @@ app.get('/admin', requireAuth, (req, res) => {
     acc[c.type] = (acc[c.type] || 0) + 1;
     return acc;
   }, {});
-  res.render('dashboard', { cards, stats, base: baseUrl(req) });
+  const usingDefaultPassword = bcrypt.compareSync('admin123', db.getAdmin().passwordHash);
+  res.render('dashboard', { cards, stats, base: baseUrl(req), usingDefaultPassword });
 });
 
 app.get('/admin/cards/new', requireAuth, (req, res) => {
@@ -208,15 +209,15 @@ app.post('/admin/cards/:id/duplicate', requireAuth, (req, res) => {
   const source = db.getCardById(req.params.id);
   if (!source) return res.status(404).send('Карточка не найдена');
 
-  const { id, slug, createdAt, viewCount, lastViewedAt, updatedAt, ...content } = source;
+  const { id, slug, createdAt, viewCount, lastViewedAt, updatedAt, active, ...content } = source;
   const copy = {
     id: crypto.randomUUID(),
     slug: generateSlug(),
     createdAt: Date.now(),
     viewCount: 0,
     lastViewedAt: null,
-    active: true,
     ...content,
+    active: true, // a duplicate is a fresh start even if the source was paused
     label: `${content.label} (копия)`
   };
   db.addCard(copy);
