@@ -1,0 +1,15 @@
+name: Keep Render service awake
+
+on:
+  schedule:
+    # GitHub's scheduler can lag a few minutes under load, so ping well
+    # under Render's free-tier 15-minute idle timeout.
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /healthz
+        run: curl -fsS --max-time 20 https://nfc-card-web-bpxv.onrender.com/healthz

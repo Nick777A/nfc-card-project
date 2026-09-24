@@ -88,6 +88,10 @@ function requireAuth(req, res, next) {
   return res.redirect('/login');
 }
 
+// Pinged by a scheduled GitHub Action to stop the free Render instance from
+// spinning down after 15 minutes of inactivity. No auth, no session touched.
+app.get('/healthz', (req, res) => res.status(200).send('ok'));
+
 // ---------- Auth ----------
 
 app.get('/login', (req, res) => {
