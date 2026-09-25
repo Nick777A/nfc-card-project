@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
-const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const QRCode = require('qrcode');
@@ -18,8 +18,10 @@ const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 if (IS_PRODUCTION && !process.env.SESSION_SECRET) {
-  console.warn('WARNING: SESSION_SECRET is not set — sessions will not survive a restart. Set it in production.');
+  console.warn('WARNING: SESSION_SECRET is not set — logins will be forced out on every restart. Set it in production.');
 }
+const AUTH_COOKIE = 'admin_session';
+const AUTH_COOKIE_MAX_AGE = 12 * 60 * 60 * 1000; // 12h
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -43,19 +45,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(
-  session({
-    secret: SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 12 * 60 * 60 * 1000, // 12h
-      secure: IS_PRODUCTION,
-      httpOnly: true,
-      sameSite: 'lax'
-    }
-  })
-);
+app.use(cookieParser(SESSION_SECRET));
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -89,8 +79,12 @@ function baseUrl(req) {
   return process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`;
 }
 
+function isAuthed(req) {
+  return req.signedCookies && req.signedCookies[AUTH_COOKIE] === 'admin';
+}
+
 function requireAuth(req, res, next) {
-  if (req.session && req.session.isAdmin) return next();
+  if (isAuthed(req)) return next();
   return res.redirect('/login');
 }
 
@@ -125,7 +119,7 @@ app.get('/healthz', (req, res) => res.status(200).send('ok'));
 // ---------- Auth ----------
 
 app.get('/login', (req, res) => {
-  if (req.session.isAdmin) return res.redirect('/admin');
+  if (isAuthed(req)) return res.redirect('/admin');
   res.render('login', { error: null });
 });
 
@@ -134,15 +128,22 @@ app.post('/login', loginLimiter, (req, res) => {
   const admin = db.getAdmin();
   const ok = username === admin.username && bcrypt.compareSync(password || '', admin.passwordHash);
   if (!ok) return res.render('login', { error: 'Неверный логин или пароль' });
-  req.session.isAdmin = true;
+  res.cookie(AUTH_COOKIE, 'admin', {
+    signed: true,
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax',
+    maxAge: AUTH_COOKIE_MAX_AGE
+  });
   res.redirect('/admin');
 });
 
 app.post('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/login'));
+  res.clearCookie(AUTH_COOKIE);
+  res.redirect('/login');
 });
 
-app.get('/', (req, res) => res.redirect(req.session.isAdmin ? '/admin' : '/login'));
+app.get('/', (req, res) => res.redirect(isAuthed(req) ? '/admin' : '/login'));
 
 // ---------- Admin: dashboard ----------
 
