@@ -2,7 +2,7 @@
   const deleteForm = document.getElementById('delete-card-form');
   if (deleteForm) {
     deleteForm.addEventListener('submit', (e) => {
-      if (!confirm('Удалить карточку? Физическая NFC-метка при этом продолжит указывать на несуществующую ссылку.')) {
+      if (!confirm('Удалить карточку? Она попадёт в Корзину и будет доступна для восстановления 30 дней. Физическая NFC-метка при этом сразу перестанет открывать её содержимое.')) {
         e.preventDefault();
       }
     });

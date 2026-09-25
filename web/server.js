@@ -27,6 +27,7 @@ const AUTH_COOKIE = 'admin_session';
 const AUTH_COOKIE_MAX_AGE = 12 * 60 * 60 * 1000; // 12h
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+const BACKUP_TOKEN = process.env.BACKUP_TOKEN;
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -130,13 +131,22 @@ function normalizeExternalUrl(url) {
   return `https://${trimmed}`;
 }
 
-/** Shared by create and edit: pulls all type-specific content fields out of a form submission. */
-function cardFieldsFromBody(body, file, existingImageUrl) {
+/**
+ * Shared by create and edit: pulls all type-specific content fields out of a
+ * form submission. `files` is req.files from the multi-field upload
+ * middleware (image for "image"-type cards, photo for a profile's picture);
+ * `existing` carries over the previous card's file URLs when no new file
+ * was submitted this time.
+ */
+function cardFieldsFromBody(body, files, existing = {}) {
+  const imageFile = files && files.image && files.image[0];
+  const photoFile = files && files.photo && files.photo[0];
   return {
     type: body.type,
     label: (body.label || body.fullName || body.targetUrl || body.wifiSsid || 'Карточка').trim(),
     // profile
     fullName: body.fullName || '',
+    photoUrl: photoFile ? `/uploads/${photoFile.filename}` : existing.photoUrl || '',
     phone: body.phone || '',
     email: body.email || '',
     company: body.company || '',
@@ -144,7 +154,7 @@ function cardFieldsFromBody(body, file, existingImageUrl) {
     links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
     // url / image
     targetUrl: normalizeExternalUrl(body.targetUrl),
-    imageUrl: file ? `/uploads/${file.filename}` : normalizeExternalUrl(body.imageUrl) || existingImageUrl || '',
+    imageUrl: imageFile ? `/uploads/${imageFile.filename}` : normalizeExternalUrl(body.imageUrl) || existing.imageUrl || '',
     // wifi
     wifiSsid: body.wifiSsid || '',
     wifiPassword: body.wifiPassword || '',
@@ -215,7 +225,12 @@ app.get('/admin/cards/new', requireAuth, (req, res) => {
   res.render('new-card', { error: null, values: {}, base: baseUrl(req) });
 });
 
-app.post('/admin/cards/new', requireAuth, upload.single('image'), (req, res) => {
+const uploadCardFiles = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'photo', maxCount: 1 }
+]);
+
+app.post('/admin/cards/new', requireAuth, uploadCardFiles, (req, res) => {
   const body = req.body;
 
   if (!body.type) {
@@ -235,7 +250,7 @@ app.post('/admin/cards/new', requireAuth, upload.single('image'), (req, res) => 
     viewCount: 0,
     lastViewedAt: null,
     active: true,
-    ...cardFieldsFromBody(body, req.file)
+    ...cardFieldsFromBody(body, req.files)
   };
 
   db.addCard(card);
@@ -248,7 +263,7 @@ app.get('/admin/cards/:id/edit', requireAuth, (req, res) => {
   res.render('edit-card', { card, error: null });
 });
 
-app.post('/admin/cards/:id/edit', requireAuth, upload.single('image'), (req, res) => {
+app.post('/admin/cards/:id/edit', requireAuth, uploadCardFiles, (req, res) => {
   const card = db.getCardById(req.params.id);
   if (!card) return res.status(404).send('Карточка не найдена');
 
@@ -256,7 +271,7 @@ app.post('/admin/cards/:id/edit', requireAuth, upload.single('image'), (req, res
     return res.render('edit-card', { card, error: 'Выберите тип карточки' });
   }
 
-  const updated = cardFieldsFromBody(req.body, req.file, card.imageUrl);
+  const updated = cardFieldsFromBody(req.body, req.files, { imageUrl: card.imageUrl, photoUrl: card.photoUrl });
   db.updateCard(card.id, { ...updated, updatedAt: Date.now() });
   res.redirect(`/admin/cards/${card.id}`);
 });
@@ -317,6 +332,7 @@ app.post('/admin/cards/bulk', requireAuth, memoryUpload.single('csvFile'), (req,
       lastViewedAt: null,
       active: true,
       fullName,
+      photoUrl: '',
       phone: row.phone || row['Телефон'] || '',
       email: row.email || row['Email'] || '',
       company: row.company || row['Компания'] || '',
@@ -368,7 +384,24 @@ app.post('/admin/cards/:id/toggle-active', requireAuth, (req, res) => {
 
 app.post('/admin/cards/:id/delete', requireAuth, (req, res) => {
   db.deleteCard(req.params.id);
-  res.redirect('/admin');
+  res.redirect('/admin/trash');
+});
+
+// ---------- Trash: a delete moves a card here for 30 days before it's gone
+// for good, so an accidental click doesn't destroy data outright. ----------
+
+app.get('/admin/trash', requireAuth, (req, res) => {
+  res.render('trash', { cards: db.listTrash(), base: baseUrl(req) });
+});
+
+app.post('/admin/cards/:id/restore', requireAuth, (req, res) => {
+  db.restoreCard(req.params.id);
+  res.redirect('/admin/trash');
+});
+
+app.post('/admin/cards/:id/delete-forever', requireAuth, (req, res) => {
+  db.permanentlyDeleteCard(req.params.id);
+  res.redirect('/admin/trash');
 });
 
 // ---------- Backup / restore (free hosting tiers don't always guarantee the
@@ -380,6 +413,19 @@ app.get('/admin/export', requireAuth, (req, res) => {
   res.set('Content-Type', 'application/json; charset=utf-8');
   res.set('Content-Disposition', `attachment; filename="nfc-cards-backup-${Date.now()}.json"`);
   res.send(JSON.stringify(data, null, 2));
+});
+
+// Headless export for the scheduled off-site backup (GitHub Action), so a
+// single lost/corrupted Redis instance isn't the only copy of the data.
+// Auth is a shared secret (BACKUP_TOKEN) instead of the admin cookie, since
+// this is called by a CI job with no browser session.
+app.get('/internal/backup', (req, res) => {
+  if (!BACKUP_TOKEN) return res.status(503).send('BACKUP_TOKEN not configured');
+  const provided = Buffer.from((req.query.token || '').toString());
+  const expected = Buffer.from(BACKUP_TOKEN);
+  const ok = provided.length === expected.length && crypto.timingSafeEqual(provided, expected);
+  if (!ok) return res.status(401).send('Unauthorized');
+  res.json({ exportedAt: new Date().toISOString(), cards: db.exportCards() });
 });
 
 app.get('/admin/export.csv', requireAuth, (req, res) => {
@@ -467,6 +513,10 @@ app.post('/admin/generate-recovery-code', requireAuth, (req, res) => {
     newRecoveryCode: rawCode,
     hasRecoveryCode: true
   });
+});
+
+app.get('/privacy', (req, res) => {
+  res.render('privacy');
 });
 
 // ---------- Forgot password: reset via the one-time recovery code ----------

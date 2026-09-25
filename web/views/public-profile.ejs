@@ -10,9 +10,13 @@
     <%- include('partials/lang-switcher') %>
 
     <% if (card.type === 'profile') { %>
-      <div class="profile-avatar reveal-item" style="--d:0">
+      <div class="profile-avatar reveal-item <%= card.photoUrl ? 'has-photo' : '' %>" style="--d:0">
         <span class="avatar-ring"></span>
-        <%= (card.fullName || '?').trim().charAt(0).toUpperCase() %>
+        <% if (card.photoUrl) { %>
+          <img src="<%= card.photoUrl %>" alt="<%= card.fullName %>" />
+        <% } else { %>
+          <%= (card.fullName || '?').trim().charAt(0).toUpperCase() %>
+        <% } %>
       </div>
       <p class="profile-name reveal-item" style="--d:1"><%= card.fullName %></p>
       <% if (card.jobTitle || card.company) { %>
@@ -60,6 +64,8 @@
       <img src="<%= qrDataUrl %>" alt="QR" width="132" height="132" />
       <p class="hint"><%= t('qrFallbackHint') %></p>
     </div>
+
+    <p class="hint" style="margin-top:20px; text-align:center;"><a href="/privacy">Privacy</a></p>
   </div>
 
   <script src="/js/lang-switcher.js"></script>

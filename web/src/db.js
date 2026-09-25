@@ -76,6 +76,15 @@ function persist() {
   }
 }
 
+const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+/** Permanently drops trash older than the retention window. Called whenever the trash is viewed. */
+function purgeOldTrash() {
+  const before = state.cards.length;
+  state.cards = state.cards.filter((c) => !(c.deletedAt && Date.now() - c.deletedAt > TRASH_RETENTION_MS));
+  if (state.cards.length !== before) persist();
+}
+
 module.exports = {
   init,
   getAdmin() {
@@ -109,10 +118,20 @@ module.exports = {
     return Math.max(0, until - Date.now());
   },
   listCards() {
-    return [...state.cards].sort((a, b) => b.createdAt - a.createdAt);
+    return state.cards
+      .filter((c) => !c.deletedAt)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  },
+  /** Soft-deleted cards, newest-deleted first. Auto-purges anything older than 30 days. */
+  listTrash() {
+    purgeOldTrash();
+    return state.cards
+      .filter((c) => c.deletedAt)
+      .sort((a, b) => b.deletedAt - a.deletedAt);
   },
   getCardBySlug(slug) {
-    return state.cards.find((c) => c.slug === slug) || null;
+    // Public lookups must not resolve a card that's in the trash.
+    return state.cards.find((c) => c.slug === slug && !c.deletedAt) || null;
   },
   getCardById(id) {
     return state.cards.find((c) => c.id === id) || null;
@@ -129,7 +148,19 @@ module.exports = {
     persist();
     return card;
   },
+  /** Soft delete: moves the card to the trash (recoverable for 30 days) instead of erasing it. */
   deleteCard(id) {
+    const card = state.cards.find((c) => c.id === id);
+    if (card) card.deletedAt = Date.now();
+    persist();
+  },
+  restoreCard(id) {
+    const card = state.cards.find((c) => c.id === id);
+    if (card) delete card.deletedAt;
+    persist();
+    return card || null;
+  },
+  permanentlyDeleteCard(id) {
     state.cards = state.cards.filter((c) => c.id !== id);
     persist();
   },

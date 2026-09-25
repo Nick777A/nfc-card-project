@@ -40,6 +40,11 @@
             <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
           </div>
           <div class="field">
+            <label for="photo">Фото профиля</label>
+            <input type="file" id="photo" name="photo" accept="image/*" />
+            <% if (card.photoUrl) { %><p class="hint">Текущее фото: <a href="<%= card.photoUrl %>" target="_blank">открыть</a> — загрузите новое, чтобы заменить.</p><% } %>
+          </div>
+          <div class="field">
             <label for="phone">Телефон</label>
             <input type="tel" id="phone" name="phone" value="<%= card.phone || '' %>" />
           </div>

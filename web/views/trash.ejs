@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Корзина — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <h1>Корзина</h1>
+    <p class="hint" style="margin-top:-8px; margin-bottom:20px;">
+      Удалённые карточки хранятся здесь 30 дней и их можно восстановить, потом удаляются навсегда автоматически.
+    </p>
+
+    <% if (cards.length === 0) { %>
+      <div class="card"><p>Корзина пуста.</p></div>
+    <% } else { %>
+      <div class="card table-scroll" style="padding:0;">
+        <table class="cards-table">
+          <thead>
+            <tr>
+              <th>Название</th>
+              <th>Тип</th>
+              <th>Удалена</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cards.forEach(function(card) { %>
+              <tr>
+                <td><%= card.label %></td>
+                <td><span class="badge"><%= card.type %></span></td>
+                <td><%= new Date(card.deletedAt).toLocaleString('ru-RU') %></td>
+                <td class="row" style="gap:8px;">
+                  <form method="post" action="/admin/cards/<%= card.id %>/restore" class="inline-form">
+                    <button type="submit" class="btn secondary">Восстановить</button>
+                  </form>
+                  <form method="post" action="/admin/cards/<%= card.id %>/delete-forever" class="inline-form" data-confirm="Удалить окончательно? Это нельзя отменить.">
+                    <button type="submit" class="btn danger">Удалить навсегда</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+  <script src="/js/trash.js"></script>
+</body>
+</html>
