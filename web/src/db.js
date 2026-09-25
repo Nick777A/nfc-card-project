@@ -3,6 +3,15 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 
 const DB_PATH = path.join(__dirname, '..', 'data', 'db.json');
+const REDIS_KEY = 'nfc-card-db';
+
+const REDIS_URL = process.env.REDIS_URL;
+let redisClient = null;
+if (REDIS_URL) {
+  const Redis = require('ioredis');
+  redisClient = new Redis(REDIS_URL, { maxRetriesPerRequest: 3 });
+  redisClient.on('error', (err) => console.error('Redis error:', err.message));
+}
 
 function defaultData() {
   return {
@@ -15,38 +24,63 @@ function defaultData() {
   };
 }
 
-function load() {
-  if (!fs.existsSync(DB_PATH)) {
-    const data = defaultData();
-    save(data);
-    return data;
-  }
-  const raw = fs.readFileSync(DB_PATH, 'utf-8');
+function loadFromFile() {
+  if (!fs.existsSync(DB_PATH)) return null;
   try {
-    return JSON.parse(raw);
+    return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
   } catch {
-    const data = defaultData();
-    save(data);
-    return data;
+    return null;
   }
 }
 
-function save(data) {
+function saveToFile(data) {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Single in-memory copy, flushed to disk after every mutation. Fine for a
-// single-process prototype; not safe for concurrent multi-process writers.
-let state = load();
+// Single in-memory copy, read/written synchronously by every request handler
+// so the rest of the app never has to know or care whether persistence is
+// local-disk or Redis. Local disk is a best-effort cache (instant, but wiped
+// on every redeploy on free hosting tiers); when REDIS_URL is set, Redis is
+// the durable source of truth and every mutation is also pushed there.
+let state = loadFromFile() || defaultData();
+
+/**
+ * Must be awaited once at startup, before the server accepts requests.
+ * Pulls the durable copy from Redis (if configured) into memory.
+ */
+async function init() {
+  if (!redisClient) return;
+  try {
+    const raw = await redisClient.get(REDIS_KEY);
+    if (raw) {
+      state = JSON.parse(raw);
+    } else {
+      // First run against this Redis instance: seed it with what we have.
+      await redisClient.set(REDIS_KEY, JSON.stringify(state));
+    }
+  } catch (err) {
+    console.error('Failed to load from Redis, falling back to local disk copy:', err.message);
+  }
+}
+
+function persist() {
+  saveToFile(state);
+  if (redisClient) {
+    redisClient.set(REDIS_KEY, JSON.stringify(state)).catch((err) => {
+      console.error('Failed to persist to Redis:', err.message);
+    });
+  }
+}
 
 module.exports = {
+  init,
   getAdmin() {
     return state.admin;
   },
   setAdminPassword(newPasswordHash) {
     state.admin.passwordHash = newPasswordHash;
-    save(state);
+    persist();
   },
   listCards() {
     return [...state.cards].sort((a, b) => b.createdAt - a.createdAt);
@@ -59,19 +93,19 @@ module.exports = {
   },
   addCard(card) {
     state.cards.push(card);
-    save(state);
+    persist();
     return card;
   },
   updateCard(id, patch) {
     const card = state.cards.find((c) => c.id === id);
     if (!card) return null;
     Object.assign(card, patch);
-    save(state);
+    persist();
     return card;
   },
   deleteCard(id) {
     state.cards = state.cards.filter((c) => c.id !== id);
-    save(state);
+    persist();
   },
   slugTaken(slug, excludeId) {
     return state.cards.some((c) => c.slug === slug && c.id !== excludeId);
@@ -81,7 +115,7 @@ module.exports = {
     if (!card) return;
     card.viewCount = (card.viewCount || 0) + 1;
     card.lastViewedAt = Date.now();
-    save(state);
+    persist();
   },
   exportCards() {
     return state.cards;
@@ -90,6 +124,6 @@ module.exports = {
   importCards(cards) {
     if (!Array.isArray(cards)) throw new Error('Ожидался массив карточек');
     state.cards = cards;
-    save(state);
+    persist();
   }
 };

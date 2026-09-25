@@ -441,7 +441,10 @@ app.get('/u/:slug/vcard', (req, res) => {
   res.send(vcard);
 });
 
-app.listen(PORT, () => {
-  console.log(`NFC card admin running on http://localhost:${PORT}`);
-  console.log('Default login: admin / admin123 (change it under "Сменить пароль" after first login)');
+db.init().then(() => {
+  app.listen(PORT, () => {
+    console.log(`NFC card admin running on http://localhost:${PORT}`);
+    console.log('Default login: admin / admin123 (change it under "Сменить пароль" after first login)');
+    console.log(process.env.REDIS_URL ? 'Persistence: Redis (durable)' : 'Persistence: local file only (not durable across redeploys)');
+  });
 });
