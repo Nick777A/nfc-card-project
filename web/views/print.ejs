@@ -23,8 +23,10 @@
     .print-item .slug { color: var(--text-muted); font-size: 12px; }
     @media print {
       .print-toolbar, .admin-nav { display: none; }
-      body { background: white; }
-      .print-item { border: 1px solid #ccc; }
+      html, body { background: #ffffff !important; color: #000000 !important; }
+      .print-item { border: 1px solid #ccc !important; }
+      .print-item .name { color: #000000 !important; }
+      .print-item .slug { color: #555555 !important; }
     }
   </style>
 </head>
