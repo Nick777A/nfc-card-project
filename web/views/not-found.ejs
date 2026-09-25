@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="<%= lang %>">
 <head>
-  <title>Не найдено</title>
+  <title><%= t('notFoundTitle') %></title>
   <%- include('partials/head') %>
 </head>
 <body>
   <div class="profile-page">
+    <%- include('partials/lang-switcher') %>
     <div class="profile-avatar">?</div>
-    <p class="profile-name">Карточка не найдена</p>
-    <p class="hint">Эта ссылка недействительна или карточка была удалена.</p>
+    <p class="profile-name"><%= t('notFoundTitle') %></p>
+    <p class="hint"><%= t('notFoundHint') %></p>
   </div>
+  <script src="/js/lang-switcher.js"></script>
 </body>
 </html>

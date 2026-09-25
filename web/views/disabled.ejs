@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="<%= lang %>">
 <head>
-  <title>Карточка отключена</title>
+  <title><%= t('disabledTitle') %></title>
   <%- include('partials/head') %>
 </head>
 <body>
   <div class="profile-page">
+    <%- include('partials/lang-switcher') %>
     <div class="profile-avatar">⏸</div>
-    <p class="profile-name">Карточка временно отключена</p>
-    <p class="hint">Владелец приостановил эту карточку. Обратитесь к тому, кто её выдал.</p>
+    <p class="profile-name"><%= t('disabledTitle') %></p>
+    <p class="hint"><%= t('disabledHint') %></p>
   </div>
+  <script src="/js/lang-switcher.js"></script>
 </body>
 </html>

@@ -1,0 +1,7 @@
+<div class="lang-switcher">
+  <select id="lang-select" aria-label="Language">
+    <% languages.forEach(function(l) { %>
+      <option value="<%= l.code %>" <%= l.code === lang ? 'selected' : '' %>><%= l.label %></option>
+    <% }) %>
+  </select>
+</div>

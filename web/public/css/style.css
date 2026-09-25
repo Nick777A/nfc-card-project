@@ -311,6 +311,24 @@ table.cards-table tbody tr:last-child td { border-bottom: none; }
 
 .btn-block { display: flex; width: 100%; }
 
+.lang-switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.lang-switcher select {
+  background: var(--card-bg-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.lang-switcher select:focus { outline: none; border-color: var(--primary); }
+
 .qr-fallback {
   margin-top: 32px;
   padding-top: 24px;

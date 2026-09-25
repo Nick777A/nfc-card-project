@@ -13,6 +13,7 @@ const { parse: parseCsv } = require('csv-parse/sync');
 
 const db = require('./src/db');
 const { generateSlug, buildVCard, resolveTagPayload } = require('./src/cardPayload');
+const { LANGUAGES, translate, resolveLang } = require('./src/i18n');
 
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -399,22 +400,25 @@ app.post('/admin/change-password', requireAuth, (req, res) => {
 // ---------- Public: what the physical NFC tag / QR points to ----------
 
 app.get('/u/:slug', async (req, res) => {
+  const lang = resolveLang(req, res);
+  const t = (key) => translate(lang, key);
+
   const card = db.getCardBySlug(req.params.slug);
-  if (!card) return res.status(404).render('not-found');
+  if (!card) return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
 
   db.recordView(card.id);
 
   if (card.active === false) {
-    return res.status(410).render('disabled');
+    return res.status(410).render('disabled', { t, lang, languages: LANGUAGES });
   }
 
   switch (card.type) {
     case 'url':
       if (card.targetUrl) return res.redirect(card.targetUrl);
-      return res.status(404).render('not-found');
+      return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
     case 'image':
       if (card.imageUrl) return res.redirect(card.imageUrl);
-      return res.status(404).render('not-found');
+      return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
     case 'profile':
     case 'wifi':
     case 'custom':
@@ -423,7 +427,7 @@ app.get('/u/:slug', async (req, res) => {
       // as a fallback when the person they're greeting can't read NFC.
       const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
       const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 220 });
-      return res.render('public-profile', { card, qrDataUrl });
+      return res.render('public-profile', { card, qrDataUrl, t, lang, languages: LANGUAGES });
     }
   }
 });

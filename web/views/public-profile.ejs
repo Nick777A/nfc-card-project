@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="<%= lang %>">
 <head>
-  <title><%= card.type === 'profile' ? (card.fullName || 'Профиль') : card.label %></title>
+  <title><%= card.type === 'profile' ? (card.fullName || 'Profile') : card.label %></title>
   <%- include('partials/head') %>
 </head>
 <body>
   <div class="profile-page">
+    <%- include('partials/lang-switcher') %>
+
     <% if (card.type === 'profile') { %>
       <div class="profile-avatar"><%= (card.fullName || '?').trim().charAt(0).toUpperCase() %></div>
       <p class="profile-name"><%= card.fullName %></p>
@@ -13,28 +15,28 @@
         <p class="profile-sub"><%= [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
       <% } %>
 
-      <a class="btn btn-block" href="/u/<%= card.slug %>/vcard">⬇ Сохранить контакт в 1 клик</a>
+      <a class="btn btn-block" href="/u/<%= card.slug %>/vcard">⬇ <%= t('saveContact') %></a>
 
       <div class="profile-list">
         <% if (card.phone) { %>
-          <div class="row-item"><span>Телефон</span><a href="tel:<%= card.phone %>"><%= card.phone %></a></div>
+          <div class="row-item"><span><%= t('phoneLabel') %></span><a href="tel:<%= card.phone %>"><%= card.phone %></a></div>
         <% } %>
         <% if (card.email) { %>
-          <div class="row-item"><span>Email</span><a href="mailto:<%= card.email %>"><%= card.email %></a></div>
+          <div class="row-item"><span><%= t('emailLabel') %></span><a href="mailto:<%= card.email %>"><%= card.email %></a></div>
         <% } %>
         <% (card.links || []).forEach(function(link) { %>
-          <div class="row-item"><span>Ссылка</span><a href="<%= link %>" target="_blank"><%= link %></a></div>
+          <div class="row-item"><span><%= t('linkLabel') %></span><a href="<%= link %>" target="_blank"><%= link %></a></div>
         <% }) %>
       </div>
 
     <% } else if (card.type === 'wifi') { %>
       <div class="profile-avatar">📶</div>
       <p class="profile-name"><%= card.wifiSsid %></p>
-      <p class="profile-sub">Сеть Wi‑Fi</p>
+      <p class="profile-sub"><%= t('wifiNetwork') %></p>
       <div class="profile-list">
-        <div class="row-item"><span>Пароль</span><span><%= card.wifiPassword || '—' %></span></div>
+        <div class="row-item"><span><%= t('wifiPassword') %></span><span><%= card.wifiPassword || '—' %></span></div>
       </div>
-      <p class="hint">Если телефон не подключился автоматически при поднесении карты, введите эти данные в настройках Wi‑Fi вручную.</p>
+      <p class="hint"><%= t('wifiHint') %></p>
 
     <% } else { %>
       <div class="profile-avatar">🔗</div>
@@ -43,10 +45,12 @@
     <% } %>
 
     <div class="qr-fallback">
-      <p class="qr-fallback-label">Не получилось через NFC?</p>
-      <img src="<%= qrDataUrl %>" alt="QR-код этой карточки" width="132" height="132" />
-      <p class="hint">Покажите этот QR-код собеседнику со своего экрана — он откроет ту же карточку камерой телефона.</p>
+      <p class="qr-fallback-label"><%= t('qrFallbackLabel') %></p>
+      <img src="<%= qrDataUrl %>" alt="QR" width="132" height="132" />
+      <p class="hint"><%= t('qrFallbackHint') %></p>
     </div>
   </div>
+
+  <script src="/js/lang-switcher.js"></script>
 </body>
 </html>
