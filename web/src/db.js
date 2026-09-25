@@ -18,7 +18,10 @@ function defaultData() {
     admin: {
       username: 'admin',
       // default password: "admin123" — change it after first login in production use
-      passwordHash: bcrypt.hashSync('admin123', 10)
+      passwordHash: bcrypt.hashSync('admin123', 10),
+      recoveryCodeHash: null,
+      failedAttempts: 0,
+      lockedUntil: null
     },
     cards: []
   };
@@ -81,6 +84,29 @@ module.exports = {
   setAdminPassword(newPasswordHash) {
     state.admin.passwordHash = newPasswordHash;
     persist();
+  },
+  setRecoveryCodeHash(hash) {
+    state.admin.recoveryCodeHash = hash;
+    persist();
+  },
+  recordFailedLogin(maxAttempts, lockoutMs) {
+    const admin = state.admin;
+    admin.failedAttempts = (admin.failedAttempts || 0) + 1;
+    if (admin.failedAttempts >= maxAttempts) {
+      admin.lockedUntil = Date.now() + lockoutMs;
+      admin.failedAttempts = 0;
+    }
+    persist();
+  },
+  recordSuccessfulLogin() {
+    state.admin.failedAttempts = 0;
+    state.admin.lockedUntil = null;
+    persist();
+  },
+  getLockoutRemainingMs() {
+    const until = state.admin.lockedUntil;
+    if (!until) return 0;
+    return Math.max(0, until - Date.now());
   },
   listCards() {
     return [...state.cards].sort((a, b) => b.createdAt - a.createdAt);

@@ -8,6 +8,7 @@ const multer = require('multer');
 const QRCode = require('qrcode');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const slowDown = require('express-slow-down');
 
 const { parse: parseCsv } = require('csv-parse/sync');
 
@@ -23,6 +24,8 @@ if (IS_PRODUCTION && !process.env.SESSION_SECRET) {
 }
 const AUTH_COOKIE = 'admin_session';
 const AUTH_COOKIE_MAX_AGE = 12 * 60 * 60 * 1000; // 12h
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -48,12 +51,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser(SESSION_SECRET));
 
+// Two layers of brute-force defense on top of the per-account lockout below:
+// a hard per-IP cap, and a progressive delay that slows down automated
+// guessing long before that cap is hit.
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Слишком много попыток входа, попробуйте позже'
+  message: 'Слишком много попыток входа с этого адреса, попробуйте позже'
+});
+
+const loginSlowDown = slowDown({
+  windowMs: 15 * 60 * 1000,
+  delayAfter: 2,
+  delayMs: (hits) => hits * 300,
+  maxDelayMs: 5000
 });
 
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
@@ -87,6 +100,20 @@ function isAuthed(req) {
 function requireAuth(req, res, next) {
   if (isAuthed(req)) return next();
   return res.redirect('/login');
+}
+
+/** A human-typeable one-time recovery code, e.g. "K7H4-9XPT-3RQW-Y2LM". */
+function generateRecoveryCode() {
+  const alphabet = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'; // no 0/1/O/I — avoids ambiguity
+  const groups = [];
+  for (let g = 0; g < 4; g++) {
+    let group = '';
+    for (let i = 0; i < 4; i++) {
+      group += alphabet[crypto.randomInt(alphabet.length)];
+    }
+    groups.push(group);
+  }
+  return groups.join('-');
 }
 
 /** Shared by create and edit: pulls all type-specific content fields out of a form submission. */
@@ -124,11 +151,23 @@ app.get('/login', (req, res) => {
   res.render('login', { error: null });
 });
 
-app.post('/login', loginLimiter, (req, res) => {
+app.post('/login', loginLimiter, loginSlowDown, (req, res) => {
+  const remainingLockMs = db.getLockoutRemainingMs();
+  if (remainingLockMs > 0) {
+    const minutes = Math.ceil(remainingLockMs / 60000);
+    return res.render('login', {
+      error: `Слишком много неверных попыток. Аккаунт временно заблокирован — попробуйте через ${minutes} мин, или воспользуйтесь восстановлением доступа.`
+    });
+  }
+
   const { username, password } = req.body;
   const admin = db.getAdmin();
   const ok = username === admin.username && bcrypt.compareSync(password || '', admin.passwordHash);
-  if (!ok) return res.render('login', { error: 'Неверный логин или пароль' });
+  if (!ok) {
+    db.recordFailedLogin(MAX_LOGIN_ATTEMPTS, LOCKOUT_MS);
+    return res.render('login', { error: 'Неверный логин или пароль' });
+  }
+  db.recordSuccessfulLogin();
   res.cookie(AUTH_COOKIE, 'admin', {
     signed: true,
     httpOnly: true,
@@ -378,23 +417,77 @@ app.post('/admin/import', requireAuth, memoryUpload.single('backupFile'), (req, 
 });
 
 app.get('/admin/change-password', requireAuth, (req, res) => {
-  res.render('change-password', { error: null, success: null });
+  res.render('change-password', {
+    error: null,
+    success: null,
+    newRecoveryCode: null,
+    hasRecoveryCode: !!db.getAdmin().recoveryCodeHash
+  });
 });
 
 app.post('/admin/change-password', requireAuth, (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
   const admin = db.getAdmin();
+  const render = (error, success) =>
+    res.render('change-password', { error, success, newRecoveryCode: null, hasRecoveryCode: !!admin.recoveryCodeHash });
+
   if (!bcrypt.compareSync(currentPassword || '', admin.passwordHash)) {
-    return res.render('change-password', { error: 'Текущий пароль неверен', success: null });
+    return render('Текущий пароль неверен', null);
   }
   if (!newPassword || newPassword.length < 6) {
-    return res.render('change-password', { error: 'Новый пароль должен быть не короче 6 символов', success: null });
+    return render('Новый пароль должен быть не короче 6 символов', null);
   }
   if (newPassword !== confirmPassword) {
-    return res.render('change-password', { error: 'Пароли не совпадают', success: null });
+    return render('Пароли не совпадают', null);
   }
   db.setAdminPassword(bcrypt.hashSync(newPassword, 10));
-  res.render('change-password', { error: null, success: 'Пароль обновлён' });
+  render(null, 'Пароль обновлён');
+});
+
+app.post('/admin/generate-recovery-code', requireAuth, (req, res) => {
+  const rawCode = generateRecoveryCode();
+  db.setRecoveryCodeHash(bcrypt.hashSync(rawCode, 10));
+  res.render('change-password', {
+    error: null,
+    success: null,
+    newRecoveryCode: rawCode,
+    hasRecoveryCode: true
+  });
+});
+
+// ---------- Forgot password: reset via the one-time recovery code ----------
+
+app.get('/forgot-password', (req, res) => {
+  res.render('forgot-password', { error: null, success: null });
+});
+
+app.post('/forgot-password', loginLimiter, loginSlowDown, (req, res) => {
+  const { recoveryCode, newPassword, confirmPassword } = req.body;
+  const admin = db.getAdmin();
+
+  if (!admin.recoveryCodeHash) {
+    return res.render('forgot-password', {
+      error: 'Код восстановления ещё не был создан заранее — восстановить доступ через него нельзя.',
+      success: null
+    });
+  }
+  if (!bcrypt.compareSync((recoveryCode || '').trim(), admin.recoveryCodeHash)) {
+    return res.render('forgot-password', { error: 'Неверный код восстановления', success: null });
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return res.render('forgot-password', { error: 'Новый пароль должен быть не короче 6 символов', success: null });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.render('forgot-password', { error: 'Пароли не совпадают', success: null });
+  }
+
+  db.setAdminPassword(bcrypt.hashSync(newPassword, 10));
+  db.setRecoveryCodeHash(null); // one-time use — a new one must be generated after logging in
+  db.recordSuccessfulLogin(); // also clears any active lockout
+  res.render('forgot-password', {
+    error: null,
+    success: 'Пароль сброшен. Войдите с новым паролем и сразу создайте новый код восстановления в разделе «Пароль».'
+  });
 });
 
 // ---------- Public: what the physical NFC tag / QR points to ----------
