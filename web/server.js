@@ -15,6 +15,7 @@ const { parse: parseCsv } = require('csv-parse/sync');
 const db = require('./src/db');
 const { generateSlug, buildVCard, resolveTagPayload } = require('./src/cardPayload');
 const { LANGUAGES, translate, resolveLang } = require('./src/i18n');
+const { detectSocial } = require('./src/socialIcons');
 
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -533,7 +534,27 @@ app.get('/u/:slug', async (req, res) => {
       // as a fallback when the person they're greeting can't read NFC.
       const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
       const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 220 });
-      return res.render('public-profile', { card, qrDataUrl, t, lang, languages: LANGUAGES });
+      const linksWithIcons = (card.links || []).map((url) => ({ url, ...detectSocial(url) }));
+      const ogImage = `${baseUrl(req)}/og-image.png`;
+      const ogTitle = card.type === 'profile' ? (card.fullName || card.label) : card.label;
+      const ogDescription =
+        card.type === 'profile'
+          ? [card.jobTitle, card.company].filter(Boolean).join(' · ') || 'Digital business card'
+          : card.type === 'wifi'
+            ? 'Wi‑Fi network'
+            : 'Digital business card';
+      return res.render('public-profile', {
+        card,
+        qrDataUrl,
+        t,
+        lang,
+        languages: LANGUAGES,
+        linksWithIcons,
+        ogImage,
+        ogTitle,
+        ogDescription,
+        base: baseUrl(req)
+      });
     }
   }
 });
