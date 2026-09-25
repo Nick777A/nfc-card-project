@@ -116,6 +116,19 @@ function generateRecoveryCode() {
   return groups.join('-');
 }
 
+/**
+ * A URL typed without "https://" (e.g. "greenwich.am") isn't an absolute
+ * link — a redirect to it resolves as *relative* to the current page,
+ * which silently breaks the whole card ("Card not found"). Adding the
+ * scheme when it's missing is what a normal user expects to happen.
+ */
+function normalizeExternalUrl(url) {
+  const trimmed = (url || '').trim();
+  if (!trimmed) return '';
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 /** Shared by create and edit: pulls all type-specific content fields out of a form submission. */
 function cardFieldsFromBody(body, file, existingImageUrl) {
   return {
@@ -127,10 +140,10 @@ function cardFieldsFromBody(body, file, existingImageUrl) {
     email: body.email || '',
     company: body.company || '',
     jobTitle: body.jobTitle || '',
-    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean),
+    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
     // url / image
-    targetUrl: body.targetUrl || '',
-    imageUrl: file ? `/uploads/${file.filename}` : body.imageUrl || existingImageUrl || '',
+    targetUrl: normalizeExternalUrl(body.targetUrl),
+    imageUrl: file ? `/uploads/${file.filename}` : normalizeExternalUrl(body.imageUrl) || existingImageUrl || '',
     // wifi
     wifiSsid: body.wifiSsid || '',
     wifiPassword: body.wifiPassword || '',
