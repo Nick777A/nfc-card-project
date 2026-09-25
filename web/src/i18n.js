@@ -1,13 +1,13 @@
 const LANGUAGES = [
-  { code: 'ru', label: 'Русский' },
   { code: 'en', label: 'English' },
+  { code: 'ru', label: 'Русский' },
   { code: 'fr', label: 'Français' },
   { code: 'de', label: 'Deutsch' },
   { code: 'es', label: 'Español' },
   { code: 'it', label: 'Italiano' }
 ];
 
-const DEFAULT_LANG = 'ru';
+const DEFAULT_LANG = 'en';
 
 const DICTIONARY = {
   saveContact: {
