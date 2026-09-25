@@ -397,7 +397,7 @@ app.post('/admin/change-password', requireAuth, (req, res) => {
 
 // ---------- Public: what the physical NFC tag / QR points to ----------
 
-app.get('/u/:slug', (req, res) => {
+app.get('/u/:slug', async (req, res) => {
   const card = db.getCardBySlug(req.params.slug);
   if (!card) return res.status(404).render('not-found');
 
@@ -417,8 +417,13 @@ app.get('/u/:slug', (req, res) => {
     case 'profile':
     case 'wifi':
     case 'custom':
-    default:
-      return res.render('public-profile', { card });
+    default: {
+      // Lets the card's own owner show this same QR from their phone screen
+      // as a fallback when the person they're greeting can't read NFC.
+      const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
+      const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 220 });
+      return res.render('public-profile', { card, qrDataUrl });
+    }
   }
 });
 

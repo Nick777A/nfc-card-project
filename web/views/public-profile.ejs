@@ -13,7 +13,7 @@
         <p class="profile-sub"><%= [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
       <% } %>
 
-      <a class="btn" href="/u/<%= card.slug %>/vcard">Сохранить контакт (.vcf)</a>
+      <a class="btn btn-block" href="/u/<%= card.slug %>/vcard">⬇ Сохранить контакт в 1 клик</a>
 
       <div class="profile-list">
         <% if (card.phone) { %>
@@ -41,6 +41,12 @@
       <p class="profile-name"><%= card.label %></p>
       <div class="payload-box" style="text-align:left; margin-top: 20px;"><%= card.customPayload %></div>
     <% } %>
+
+    <div class="qr-fallback">
+      <p class="qr-fallback-label">Не получилось через NFC?</p>
+      <img src="<%= qrDataUrl %>" alt="QR-код этой карточки" width="132" height="132" />
+      <p class="hint">Покажите этот QR-код собеседнику со своего экрана — он откроет ту же карточку камерой телефона.</p>
+    </div>
   </div>
 </body>
 </html>
