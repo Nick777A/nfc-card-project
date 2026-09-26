@@ -41,6 +41,14 @@ const DICTIONARY = {
     es: 'Si tu teléfono no se conectó automáticamente, introduce estos datos manualmente en los ajustes de Wi‑Fi.',
     it: 'Se il telefono non si è connesso automaticamente, inserisci questi dati manualmente nelle impostazioni Wi‑Fi.'
   },
+  connectedBadge: {
+    ru: 'Подключено через NFC',
+    en: 'Connected via NFC',
+    fr: 'Connecté via NFC',
+    de: 'Über NFC verbunden',
+    es: 'Conectado vía NFC',
+    it: 'Connesso via NFC'
+  },
   qrFallbackLabel: {
     ru: 'Не получилось через NFC?',
     en: "NFC didn't work?",

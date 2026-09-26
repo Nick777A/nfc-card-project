@@ -2,14 +2,22 @@
 <html lang="<%= lang %>">
 <head>
   <title><%= t('disabledTitle') %></title>
-  <%- include('partials/head') %>
+  <%- include('partials/head-digilama') %>
 </head>
-<body>
-  <div class="profile-page">
-    <%- include('partials/lang-switcher') %>
-    <div class="profile-avatar">⏸</div>
-    <p class="profile-name"><%= t('disabledTitle') %></p>
-    <p class="hint"><%= t('disabledHint') %></p>
+<body class="digilama">
+  <div class="dl-profile-wrap">
+    <div class="dl-profile-card dl-profile-reveal">
+      <div class="dl-profile-lang">
+        <select id="lang-select" aria-label="Language">
+          <% languages.forEach(function(l) { %>
+            <option value="<%= l.code %>" <%= l.code === lang ? 'selected' : '' %>><%= l.label %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="dl-avatar dl-profile-item" style="--d:1">⏸</div>
+      <p class="dl-profile-name dl-profile-item" style="--d:2"><%= t('disabledTitle') %></p>
+      <p class="dl-hint dl-profile-item" style="--d:3"><%= t('disabledHint') %></p>
+    </div>
   </div>
   <script src="/js/lang-switcher.js"></script>
 </body>

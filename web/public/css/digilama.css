@@ -326,10 +326,10 @@ body.digilama {
   flex-wrap: wrap;
 }
 .dl-mascot-img {
-  max-width: 300px;
+  max-width: 460px;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 25px 50px rgba(255, 46, 136, 0.25));
+  filter: drop-shadow(0 25px 50px rgba(255, 46, 136, 0.3));
 }
 .dl-mascot-text { max-width: 420px; text-align: left; }
 .dl-mascot-text h2 { margin: 0 0 12px; text-align: left; }
@@ -499,4 +499,202 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   .dl-choice-group.cols-3 { grid-template-columns: 1fr; }
   .dl-row { flex-direction: column; }
   .dl-nav-links { gap: 12px; }
+}
+
+/* ---- Public card page: what opens when someone taps the physical NFC card ---- */
+.dl-profile-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+.dl-profile-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  padding: 34px 26px 30px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+.dl-profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pink), var(--violet), var(--teal));
+}
+
+.dl-tap-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: rgba(0, 230, 195, 0.1);
+  border: 1px solid rgba(0, 230, 195, 0.3);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: dlTapBadgeIn 0.6s ease 0.1s both;
+}
+.dl-tap-badge .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--teal);
+  animation: dlDotPulse 1.4s ease-in-out infinite;
+}
+@keyframes dlTapBadgeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dlDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+.dl-avatar {
+  position: relative;
+  width: 104px; height: 104px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--pink), var(--violet));
+  font-size: 38px; font-weight: 800; color: #fff;
+  overflow: hidden;
+}
+.dl-avatar.has-photo { background: var(--bg-elevated); }
+.dl-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.dl-avatar-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-image: linear-gradient(135deg, var(--pink), var(--violet), var(--teal)) 1;
+  animation: dlAvatarPulse 2.6s ease-out infinite;
+}
+@keyframes dlAvatarPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  75% { transform: scale(1.22); opacity: 0; }
+  100% { transform: scale(1.22); opacity: 0; }
+}
+
+.dl-profile-name { font-size: 23px; font-weight: 800; margin: 0; letter-spacing: -0.3px; }
+.dl-profile-sub { color: var(--muted); margin: 6px 0 22px; font-size: 14px; }
+
+.dl-profile-list { text-align: left; margin: 20px 0 0; }
+.dl-profile-list .dl-row-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.dl-profile-list .dl-row-item:last-child { border-bottom: none; }
+.dl-profile-list .dl-row-item span:first-child { color: var(--muted); }
+.dl-profile-list .dl-row-item a { color: var(--text); }
+.dl-profile-list .dl-row-item a:hover { color: var(--teal); }
+
+.dl-social-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+.dl-social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.dl-social-icon svg { width: 20px; height: 20px; }
+.dl-social-icon:hover {
+  color: #fff;
+  border-color: var(--pink);
+  background: linear-gradient(135deg, var(--pink), var(--violet));
+  transform: translateY(-3px) scale(1.07);
+  text-decoration: none;
+}
+
+.dl-qr-fallback {
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px dashed var(--border);
+}
+.dl-qr-fallback-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted); margin: 0 0 14px;
+}
+.dl-qr-fallback img {
+  width: 132px; height: 132px;
+  border: 6px solid #fff;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.dl-qr-fallback .dl-hint { max-width: 260px; margin: 12px auto 0; }
+
+.dl-profile-lang {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.dl-profile-lang select {
+  background: var(--bg-elevated);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.dl-profile-lang select:focus { outline: none; border-color: var(--pink); }
+
+.dl-profile-reveal { animation: dlCardFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes dlCardFadeIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dl-profile-item {
+  opacity: 0;
+  animation: dlItemFadeUp 0.5s ease both;
+  animation-delay: calc(var(--d, 0) * 70ms + 160ms);
+}
+@keyframes dlItemFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-profile-reveal, .dl-profile-item, .dl-avatar-ring, .dl-tap-badge, .dl-tap-badge .dot {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .dl-profile-wrap { padding: 0; }
+  .dl-profile-card {
+    max-width: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 }

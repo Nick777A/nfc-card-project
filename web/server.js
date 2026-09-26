@@ -977,7 +977,8 @@ app.get('/u/:slug', async (req, res) => {
       // Lets the card's own owner show this same QR from their phone screen
       // as a fallback when the person they're greeting can't read NFC.
       const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
-      const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 220 });
+      // 2x the CSS display size (132px) so the code stays crisp on retina screens.
+      const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 264 });
       const linksWithIcons = (card.links || []).map((url) => ({ url, ...detectSocial(url) }));
       const ogImage = `${baseUrl(req)}/og-image.png`;
       const ogTitle = card.type === 'profile' ? (card.fullName || card.label) : card.label;

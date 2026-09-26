@@ -2,70 +2,80 @@
 <html lang="<%= lang %>">
 <head>
   <title><%= card.type === 'profile' ? (card.fullName || 'Profile') : card.label %></title>
-  <%- include('partials/head') %>
+  <%- include('partials/head-digilama') %>
   <%- include('partials/og-tags') %>
 </head>
-<body>
-  <div class="profile-page reveal">
-    <%- include('partials/lang-switcher') %>
-
-    <% if (card.type === 'profile') { %>
-      <div class="profile-avatar reveal-item <%= card.photoUrl ? 'has-photo' : '' %>" style="--d:0">
-        <span class="avatar-ring"></span>
-        <% if (card.photoUrl) { %>
-          <img src="<%= card.photoUrl %>" alt="<%= card.fullName %>" />
-        <% } else { %>
-          <%= (card.fullName || '?').trim().charAt(0).toUpperCase() %>
-        <% } %>
-      </div>
-      <p class="profile-name reveal-item" style="--d:1"><%= card.fullName %></p>
-      <% if (card.jobTitle || card.company) { %>
-        <p class="profile-sub reveal-item" style="--d:2"><%= [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
-      <% } %>
-
-      <a class="btn btn-block reveal-item" style="--d:3" href="/u/<%= card.slug %>/vcard">⬇ <%= t('saveContact') %></a>
-
-      <div class="profile-list reveal-item" style="--d:4">
-        <% if (card.phone) { %>
-          <div class="row-item"><span><%= t('phoneLabel') %></span><a href="tel:<%= card.phone %>"><%= card.phone %></a></div>
-        <% } %>
-        <% if (card.email) { %>
-          <div class="row-item"><span><%= t('emailLabel') %></span><a href="mailto:<%= card.email %>"><%= card.email %></a></div>
-        <% } %>
-      </div>
-
-      <% if (linksWithIcons && linksWithIcons.length > 0) { %>
-        <div class="social-row reveal-item" style="--d:5">
-          <% linksWithIcons.forEach(function(link) { %>
-            <a class="social-icon" href="<%= link.url %>" target="_blank" rel="noopener" title="<%= link.label %>" data-social="<%= link.key %>">
-              <%- link.svg %>
-            </a>
+<body class="digilama">
+  <div class="dl-profile-wrap">
+    <div class="dl-profile-card dl-profile-reveal">
+      <div class="dl-profile-lang">
+        <select id="lang-select" aria-label="Language">
+          <% languages.forEach(function(l) { %>
+            <option value="<%= l.code %>" <%= l.code === lang ? 'selected' : '' %>><%= l.label %></option>
           <% }) %>
+        </select>
+      </div>
+
+      <div class="dl-tap-badge"><span class="dot"></span> <%= t('connectedBadge') %></div>
+
+      <% if (card.type === 'profile') { %>
+        <div class="dl-avatar dl-profile-item <%= card.photoUrl ? 'has-photo' : '' %>" style="--d:1">
+          <span class="dl-avatar-ring"></span>
+          <% if (card.photoUrl) { %>
+            <img src="<%= card.photoUrl %>" alt="<%= card.fullName %>" width="104" height="104" />
+          <% } else { %>
+            <%= (card.fullName || '?').trim().charAt(0).toUpperCase() %>
+          <% } %>
         </div>
+        <p class="dl-profile-name dl-profile-item" style="--d:2"><%= card.fullName %></p>
+        <% if (card.jobTitle || card.company) { %>
+          <p class="dl-profile-sub dl-profile-item" style="--d:3"><%= [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
+        <% } %>
+
+        <a class="dl-btn primary block dl-profile-item" style="--d:4" href="/u/<%= card.slug %>/vcard">⬇ <%= t('saveContact') %></a>
+
+        <div class="dl-profile-list dl-profile-item" style="--d:5">
+          <% if (card.phone) { %>
+            <div class="dl-row-item"><span><%= t('phoneLabel') %></span><a href="tel:<%= card.phone %>"><%= card.phone %></a></div>
+          <% } %>
+          <% if (card.email) { %>
+            <div class="dl-row-item"><span><%= t('emailLabel') %></span><a href="mailto:<%= card.email %>"><%= card.email %></a></div>
+          <% } %>
+        </div>
+
+        <% if (linksWithIcons && linksWithIcons.length > 0) { %>
+          <div class="dl-social-row dl-profile-item" style="--d:6">
+            <% linksWithIcons.forEach(function(link) { %>
+              <a class="dl-social-icon" href="<%= link.url %>" target="_blank" rel="noopener" title="<%= link.label %>" data-social="<%= link.key %>">
+                <%- link.svg %>
+              </a>
+            <% }) %>
+          </div>
+        <% } %>
+
+      <% } else if (card.type === 'wifi') { %>
+        <div class="dl-avatar dl-profile-item" style="--d:1"><span class="dl-avatar-ring"></span>📶</div>
+        <p class="dl-profile-name dl-profile-item" style="--d:2"><%= card.wifiSsid %></p>
+        <p class="dl-profile-sub dl-profile-item" style="--d:3"><%= t('wifiNetwork') %></p>
+        <div class="dl-profile-list dl-profile-item" style="--d:4">
+          <div class="dl-row-item"><span><%= t('wifiPassword') %></span><span><%= card.wifiPassword || '—' %></span></div>
+        </div>
+        <p class="dl-hint dl-profile-item" style="--d:5"><%= t('wifiHint') %></p>
+
+      <% } else { %>
+        <div class="dl-avatar dl-profile-item" style="--d:1"><span class="dl-avatar-ring"></span>🔗</div>
+        <p class="dl-profile-name dl-profile-item" style="--d:2"><%= card.label %></p>
+        <div class="dl-summary dl-profile-item" style="--d:3; text-align:left;"><%= card.customPayload %></div>
       <% } %>
 
-    <% } else if (card.type === 'wifi') { %>
-      <div class="profile-avatar reveal-item" style="--d:0"><span class="avatar-ring"></span>📶</div>
-      <p class="profile-name reveal-item" style="--d:1"><%= card.wifiSsid %></p>
-      <p class="profile-sub reveal-item" style="--d:2"><%= t('wifiNetwork') %></p>
-      <div class="profile-list reveal-item" style="--d:3">
-        <div class="row-item"><span><%= t('wifiPassword') %></span><span><%= card.wifiPassword || '—' %></span></div>
+      <div class="dl-qr-fallback dl-profile-item" style="--d:7">
+        <p class="dl-qr-fallback-label"><%= t('qrFallbackLabel') %></p>
+        <img src="<%= qrDataUrl %>" alt="QR" width="132" height="132" />
+        <p class="dl-hint"><%= t('qrFallbackHint') %></p>
       </div>
-      <p class="hint reveal-item" style="--d:4"><%= t('wifiHint') %></p>
 
-    <% } else { %>
-      <div class="profile-avatar reveal-item" style="--d:0"><span class="avatar-ring"></span>🔗</div>
-      <p class="profile-name reveal-item" style="--d:1"><%= card.label %></p>
-      <div class="payload-box reveal-item" style="--d:2; text-align:left;"><%= card.customPayload %></div>
-    <% } %>
-
-    <div class="qr-fallback reveal-item" style="--d:6">
-      <p class="qr-fallback-label"><%= t('qrFallbackLabel') %></p>
-      <img src="<%= qrDataUrl %>" alt="QR" width="132" height="132" />
-      <p class="hint"><%= t('qrFallbackHint') %></p>
+      <p class="dl-hint dl-profile-item" style="--d:8; margin-top:20px; text-align:center;"><a href="/privacy">Privacy</a></p>
     </div>
-
-    <p class="hint" style="margin-top:20px; text-align:center;"><a href="/privacy">Privacy</a></p>
   </div>
 
   <script src="/js/lang-switcher.js"></script>
