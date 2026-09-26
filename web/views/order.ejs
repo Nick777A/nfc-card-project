@@ -45,27 +45,30 @@
           </div>
         </div>
 
-        <div class="dl-field" id="design-image-field" style="display:none;">
+        <div class="dl-field" id="design-customize" style="display:none;">
           <label for="designImage">Upload your logo / image</label>
           <input type="file" id="designImage" name="designImage" accept="image/*" />
-          <p class="dl-hint">Needed for printing on the card or for the sticker.</p>
-        </div>
+          <p class="dl-hint" id="design-image-hint">Needed for printing on the card or for the sticker.</p>
 
-        <div class="dl-field">
-          <label>Card preview</label>
-          <div class="dl-card-preview">
+          <label class="dl-checkbox">
+            <input type="checkbox" id="showName" name="showName" />
+            <span>Also print my name on the card</span>
+          </label>
+
+          <div class="dl-card-preview" style="margin-top:14px;">
             <div class="dl-preview-card front" id="preview-front">
-              <img id="preview-logo-img" class="dl-preview-logo-img" style="display:none;" alt="" />
-              <img id="preview-sticker-img" class="dl-preview-sticker" style="display:none;" alt="" />
-              <div class="dl-preview-name" id="preview-name">Your name</div>
-              <div class="dl-preview-brand">digilama</div>
+              <div class="dl-preview-drag-hint" id="preview-drag-hint">Drag to reposition</div>
+              <img id="preview-sticker-img" class="dl-preview-sticker" style="display:none;" alt="" draggable="false" />
+              <div class="dl-preview-name" id="preview-name" style="display:none;">Your name</div>
             </div>
             <div class="dl-preview-card back">
               <div class="dl-preview-qr"><span></span></div>
               <div class="dl-preview-caption">Card QR code</div>
             </div>
           </div>
-          <p class="dl-hint">Left — front side, right — back side (always shows this card's QR code).</p>
+          <input type="hidden" name="imagePosX" id="imagePosX" value="50" />
+          <input type="hidden" name="imagePosY" id="imagePosY" value="50" />
+          <p class="dl-hint">Left — front side, right — back side (always shows this card's QR code). Drag the image on the front to position it.</p>
         </div>
 
         <div class="dl-summary" id="price-summary">

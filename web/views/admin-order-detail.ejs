@@ -21,10 +21,19 @@
         <p><strong>Дизайн:</strong> <%= designOptions[order.design] %></p>
         <p><strong>Цена за карту:</strong> <%= order.pricePerCard.toFixed(2) %>€</p>
         <p><strong>Итого:</strong> <%= order.totalPriceEur.toFixed(2) %>€</p>
+        <p><strong>Имя на карте:</strong> <%= order.showNameOnCard ? 'Да, печатать' : 'Нет' %></p>
+        <% var imgPos = order.imagePosition || { x: 50, y: 50 }; %>
         <% if (order.designImageUrl) { %>
-          <p><strong>Картинка/логотип для дизайна:</strong><br/>
+          <p><strong>Картинка/логотип для дизайна</strong> (клиент разместил её так — ориентируйтесь на это при печати):</p>
+          <% if (order.design === 'logo-print') { %>
+            <div style="width:220px; height:138px; border-radius:12px; overflow:hidden; background-image:url('<%= order.designImageUrl %>'); background-size:cover; background-position:<%= imgPos.x %>% <%= imgPos.y %>%; border:1px solid #333;"></div>
+          <% } else if (order.design === 'sticker') { %>
+            <div style="position:relative; width:220px; height:138px; border-radius:12px; background:#fff; border:1px solid #333;">
+              <img src="<%= order.designImageUrl %>" alt="" style="position:absolute; width:52px; height:52px; object-fit:cover; border-radius:8px; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.4); left:<%= (imgPos.x / 100) * (220 - 52) %>px; top:<%= (imgPos.y / 100) * (138 - 52) %>px;" />
+            </div>
+          <% } else { %>
             <img src="<%= order.designImageUrl %>" alt="" style="max-width:180px; max-height:180px; border-radius:8px; margin-top:6px;" />
-          </p>
+          <% } %>
         <% } %>
         <% if (order.cardDetailsNote) { %><p><strong>Данные для карты(-очек):</strong><br/><%= order.cardDetailsNote %></p><% } %>
         <% if (order.shippingAddress) { %><p><strong>Адрес доставки:</strong><br/><%= order.shippingAddress %></p><% } %>

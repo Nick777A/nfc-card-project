@@ -397,6 +397,11 @@ app.post('/order', loginLimiter, upload.single('designImage'), async (req, res) 
     pricePerCard: pricing.pricePerCard,
     totalPriceEur: pricing.total,
     designImageUrl,
+    showNameOnCard: !!body.showName,
+    imagePosition: {
+      x: Math.max(0, Math.min(100, parseInt(body.imagePosX, 10) || 50)),
+      y: Math.max(0, Math.min(100, parseInt(body.imagePosY, 10) || 50))
+    },
     cardDetailsNote: (body.cardDetailsNote || '').trim(),
     shippingAddress: (body.shippingAddress || '').trim(),
     status: 'new',
