@@ -326,7 +326,7 @@ app.post('/logout', (req, res) => {
 app.get('/', (req, res) => {
   if (isAuthed(req)) return res.redirect('/admin');
   if (currentCustomerId(req)) return res.redirect('/my');
-  res.render('landing', { tiers: computeVolumeTiersForDisplay(), designOptions: DESIGN_OPTIONS });
+  res.render('landing', { tiers: computeVolumeTiersForDisplay(), designOptions: DESIGN_OPTIONS, base: baseUrl(req) });
 });
 
 function computeVolumeTiersForDisplay() {
