@@ -16,6 +16,29 @@
 
   <section class="dl-hero">
     <div class="dl-container">
+      <div class="dl-hero-visual" aria-hidden="true">
+        <div class="dl-phone">
+          <div class="dl-phone-screen">
+            <div class="dl-notification">
+              <div class="dl-notification-icon">D</div>
+              <div class="dl-notification-text">
+                <strong>digilama</strong>
+                <span>Иван Петров · открыть визитку</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dl-nfc-wave w1"></div>
+        <div class="dl-nfc-wave w2"></div>
+        <div class="dl-nfc-wave w3"></div>
+        <div class="dl-nfc-card">
+          <div class="dl-card-logo">digilama</div>
+          <div class="dl-card-chip"></div>
+          <svg class="dl-nfc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M8.5 7a6 6 0 0 1 0 10M5.5 4a10 10 0 0 1 0 16"/>
+          </svg>
+        </div>
+      </div>
       <h1>Ваша визитка.<br/><span class="grad">Один тап телефоном.</span></h1>
       <p>Физическая NFC-карта с вашими контактами, ссылками и соцсетями. Поднесли к телефону — и всё открылось. Без приложений, без дополнительной цены за обновление данных.</p>
       <a href="/order" class="dl-btn primary">Заказать карту →</a>
@@ -27,17 +50,17 @@
       <h2>Как это работает</h2>
       <p class="dl-subtitle">От заказа до карты в руках — три шага</p>
       <div class="dl-steps">
-        <div class="dl-step">
+        <div class="dl-step dl-reveal">
           <div class="dl-step-num">1</div>
           <h3>Оформляете заказ</h3>
           <p>Выбираете — для себя или для команды, количество карт и дизайн. Оставляете контакты.</p>
         </div>
-        <div class="dl-step">
+        <div class="dl-step dl-reveal">
           <div class="dl-step-num">2</div>
           <h3>Мы связываемся с вами</h3>
           <p>Уточняем детали и оплату, готовим карты с вашими данными и дизайном.</p>
         </div>
-        <div class="dl-step">
+        <div class="dl-step dl-reveal">
           <div class="dl-step-num">3</div>
           <h3>Редактируете в любой момент</h3>
           <p>В личном кабинете можно в любой момент поменять имя, телефон, ссылки — карту перевыпускать не нужно.</p>
@@ -52,7 +75,7 @@
       <p class="dl-subtitle">Чем больше карт — тем дешевле каждая</p>
       <div class="dl-pricing">
         <% tiers.forEach(function(tier, i) { %>
-          <div class="dl-price-card <%= i === 1 ? 'featured' : '' %>">
+          <div class="dl-price-card dl-reveal <%= i === 1 ? 'featured' : '' %>">
             <% if (i === 1) { %><div class="dl-badge">Популярно</div><% } %>
             <div class="dl-qty"><%= tier.qty %> карт</div>
             <div class="dl-price"><%= tier.pricePerCard.toFixed(2) %>€<small> / карта</small></div>
@@ -69,17 +92,17 @@
       <h2>Дизайн</h2>
       <p class="dl-subtitle">Три варианта оформления карты</p>
       <div class="dl-options">
-        <div class="dl-option-card">
+        <div class="dl-option-card dl-reveal">
           <h3>Классическая белая</h3>
           <div class="dl-option-price">Включено</div>
           <p>Минималистичная белая NFC-карта без дополнительной печати.</p>
         </div>
-        <div class="dl-option-card">
+        <div class="dl-option-card dl-reveal">
           <h3>Ваш логотип на карте</h3>
           <div class="dl-option-price">+3€ за карту</div>
           <p>Печатаем имя и логотип прямо на карте — выглядит как настоящая фирменная визитка.</p>
         </div>
-        <div class="dl-option-card">
+        <div class="dl-option-card dl-reveal">
           <h3>Стикер с логотипом</h3>
           <div class="dl-option-price">+1€ за карту</div>
           <p>Наклейка с логотипом и нужными изображениями поверх стандартной карты.</p>
@@ -100,5 +123,7 @@
       digilama — digital + lama · <a href="/customer/login">Личный кабинет</a> · <a href="/privacy">Политика конфиденциальности</a>
     </div>
   </footer>
+
+  <script src="/js/landing.js"></script>
 </body>
 </html>
