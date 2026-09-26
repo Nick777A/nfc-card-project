@@ -58,7 +58,7 @@ app.use(
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-        imgSrc: ["'self'", 'data:']
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://res.cloudinary.com']
       }
     }
   })
@@ -346,7 +346,7 @@ app.get('/order', (req, res) => {
   res.render('order', { error: null, values: {}, designOptions: DESIGN_OPTIONS });
 });
 
-app.post('/order', loginLimiter, (req, res) => {
+app.post('/order', loginLimiter, upload.single('designImage'), async (req, res) => {
   const body = req.body;
   const render = (error) => res.render('order', { error, values: body, designOptions: DESIGN_OPTIONS });
 
@@ -354,18 +354,28 @@ app.post('/order', loginLimiter, (req, res) => {
   const email = (body.email || '').trim().toLowerCase();
   const contactName = (body.contactName || '').trim();
   const password = body.password || '';
+  const pricing = computeOrderPricing(body.quantity, body.design);
 
   if (!contactName) return render('Укажите имя контактного лица');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Укажите корректный email');
   if (password.length < 6) return render('Пароль должен быть не короче 6 символов');
   if (password !== body.confirmPassword) return render('Пароли не совпадают');
+  if (pricing.design !== 'classic' && !req.file) {
+    return render('Для этого варианта дизайна нужно загрузить картинку/логотип');
+  }
 
   const existing = db.getCustomerByEmail(email);
   if (existing) {
     return render('Аккаунт с таким email уже существует — войдите в личный кабинет, чтобы оформить новый заказ');
   }
 
-  const pricing = computeOrderPricing(body.quantity, body.design);
+  let designImageUrl = '';
+  try {
+    designImageUrl = (await resolveUploadedUrl(req.file)) || '';
+  } catch (e) {
+    console.error('Upload failed:', e.message);
+    return render('Не удалось загрузить картинку, попробуйте ещё раз');
+  }
 
   const customer = {
     id: crypto.randomUUID(),
@@ -386,6 +396,7 @@ app.post('/order', loginLimiter, (req, res) => {
     design: pricing.design,
     pricePerCard: pricing.pricePerCard,
     totalPriceEur: pricing.total,
+    designImageUrl,
     cardDetailsNote: (body.cardDetailsNote || '').trim(),
     shippingAddress: (body.shippingAddress || '').trim(),
     status: 'new',

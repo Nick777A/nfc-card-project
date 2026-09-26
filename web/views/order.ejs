@@ -18,7 +18,7 @@
 
       <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
 
-      <form method="post" action="/order" id="order-form">
+      <form method="post" action="/order" id="order-form" enctype="multipart/form-data">
         <div class="dl-field">
           <label>Для кого карта?</label>
           <div class="dl-choice-group" id="kind-group">
@@ -43,6 +43,29 @@
               </label>
             <% }) %>
           </div>
+        </div>
+
+        <div class="dl-field" id="design-image-field" style="display:none;">
+          <label for="designImage">Загрузите логотип / картинку</label>
+          <input type="file" id="designImage" name="designImage" accept="image/*" />
+          <p class="dl-hint">Понадобится для печати на карте или для стикера.</p>
+        </div>
+
+        <div class="dl-field">
+          <label>Превью карты</label>
+          <div class="dl-card-preview">
+            <div class="dl-preview-card front" id="preview-front">
+              <img id="preview-logo-img" class="dl-preview-logo-img" style="display:none;" alt="" />
+              <img id="preview-sticker-img" class="dl-preview-sticker" style="display:none;" alt="" />
+              <div class="dl-preview-name" id="preview-name">Ваше имя</div>
+              <div class="dl-preview-brand">digilama</div>
+            </div>
+            <div class="dl-preview-card back">
+              <div class="dl-preview-qr"><span></span></div>
+              <div class="dl-preview-caption">QR-код карты</div>
+            </div>
+          </div>
+          <p class="dl-hint">Слева — лицевая сторона, справа — обратная (там всегда QR-код этой карты).</p>
         </div>
 
         <div class="dl-summary" id="price-summary">

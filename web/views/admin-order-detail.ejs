@@ -21,6 +21,11 @@
         <p><strong>Дизайн:</strong> <%= designOptions[order.design].label %></p>
         <p><strong>Цена за карту:</strong> <%= order.pricePerCard.toFixed(2) %>€</p>
         <p><strong>Итого:</strong> <%= order.totalPriceEur.toFixed(2) %>€</p>
+        <% if (order.designImageUrl) { %>
+          <p><strong>Картинка/логотип для дизайна:</strong><br/>
+            <img src="<%= order.designImageUrl %>" alt="" style="max-width:180px; max-height:180px; border-radius:8px; margin-top:6px;" />
+          </p>
+        <% } %>
         <% if (order.cardDetailsNote) { %><p><strong>Данные для карты(-очек):</strong><br/><%= order.cardDetailsNote %></p><% } %>
         <% if (order.shippingAddress) { %><p><strong>Адрес доставки:</strong><br/><%= order.shippingAddress %></p><% } %>
       </div>
