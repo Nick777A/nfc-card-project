@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Редактировать карту — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+  <nav class="dl-nav">
+    <a class="dl-logo" href="/">digilama</a>
+    <div class="dl-nav-links"><a href="/my">← Мои карты</a></div>
+  </nav>
+
+  <div class="dl-container narrow" style="padding-bottom:60px;">
+    <div class="dl-card">
+      <h1 style="margin-top:0;">Редактировать карту</h1>
+      <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
+      <form method="post" action="/my/cards/<%= card.id %>/edit" enctype="multipart/form-data">
+        <div class="dl-field">
+          <label for="fullName">Имя и фамилия</label>
+          <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="photo">Фото профиля</label>
+          <input type="file" id="photo" name="photo" accept="image/*" />
+        </div>
+        <div class="dl-row">
+          <div class="dl-field">
+            <label for="phone">Телефон</label>
+            <input type="tel" id="phone" name="phone" value="<%= card.phone || '' %>" />
+          </div>
+          <div class="dl-field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="<%= card.email || '' %>" />
+          </div>
+        </div>
+        <div class="dl-row">
+          <div class="dl-field">
+            <label for="company">Компания</label>
+            <input type="text" id="company" name="company" value="<%= card.company || '' %>" />
+          </div>
+          <div class="dl-field">
+            <label for="jobTitle">Должность</label>
+            <input type="text" id="jobTitle" name="jobTitle" value="<%= card.jobTitle || '' %>" />
+          </div>
+        </div>
+        <div class="dl-field">
+          <label for="links">Ссылки (по одной на строку)</label>
+          <textarea id="links" name="links"><%= (card.links || []).join('\n') %></textarea>
+        </div>
+        <button type="submit" class="dl-btn primary block">Сохранить</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

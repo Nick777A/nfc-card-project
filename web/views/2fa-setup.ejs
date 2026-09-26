@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Двухфакторная аутентификация — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container narrow">
+    <div class="card">
+      <h1>Включить двухфакторную аутентификацию</h1>
+      <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+      <% if (qrDataUrl) { %>
+        <p class="hint" style="margin-top:-6px;">
+          1. Установите приложение-аутентификатор (Google Authenticator, Microsoft Authenticator, Authy и т.п.)<br/>
+          2. Отсканируйте этот QR-код в приложении:
+        </p>
+        <div style="text-align:center; margin: 16px 0;">
+          <img src="<%= qrDataUrl %>" alt="QR-код для двухфакторной аутентификации" style="border-radius: var(--radius-sm);" />
+        </div>
+        <p class="hint">Не получается отсканировать? Введите вручную секретный ключ: <code><%= secret %></code></p>
+      <% } %>
+
+      <p class="hint">3. Введите код, который показывает приложение, чтобы подтвердить включение:</p>
+      <form method="post" action="/admin/2fa/setup">
+        <div class="field">
+          <label for="code">Код из приложения</label>
+          <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required autofocus />
+        </div>
+        <button type="submit" class="btn">Подтвердить и включить</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

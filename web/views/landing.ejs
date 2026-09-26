@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Digilama — умные NFC-визитки</title>
+  <meta name="description" content="Digilama — физические NFC-карты для вас или вашей команды. Один тап телефоном — и все контакты, ссылки и соцсети сразу под рукой." />
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+  <nav class="dl-nav">
+    <a class="dl-logo" href="/">digilama</a>
+    <div class="dl-nav-links">
+      <a href="/customer/login">Личный кабинет</a>
+      <a href="/order" class="dl-btn primary" style="padding:9px 20px; font-size:14px;">Заказать</a>
+    </div>
+  </nav>
+
+  <section class="dl-hero">
+    <div class="dl-container">
+      <h1>Ваша визитка.<br/><span class="grad">Один тап телефоном.</span></h1>
+      <p>Физическая NFC-карта с вашими контактами, ссылками и соцсетями. Поднесли к телефону — и всё открылось. Без приложений, без дополнительной цены за обновление данных.</p>
+      <a href="/order" class="dl-btn primary">Заказать карту →</a>
+    </div>
+  </section>
+
+  <section class="dl-section">
+    <div class="dl-container">
+      <h2>Как это работает</h2>
+      <p class="dl-subtitle">От заказа до карты в руках — три шага</p>
+      <div class="dl-steps">
+        <div class="dl-step">
+          <div class="dl-step-num">1</div>
+          <h3>Оформляете заказ</h3>
+          <p>Выбираете — для себя или для команды, количество карт и дизайн. Оставляете контакты.</p>
+        </div>
+        <div class="dl-step">
+          <div class="dl-step-num">2</div>
+          <h3>Мы связываемся с вами</h3>
+          <p>Уточняем детали и оплату, готовим карты с вашими данными и дизайном.</p>
+        </div>
+        <div class="dl-step">
+          <div class="dl-step-num">3</div>
+          <h3>Редактируете в любой момент</h3>
+          <p>В личном кабинете можно в любой момент поменять имя, телефон, ссылки — карту перевыпускать не нужно.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dl-section">
+    <div class="dl-container">
+      <h2>Цены</h2>
+      <p class="dl-subtitle">Чем больше карт — тем дешевле каждая</p>
+      <div class="dl-pricing">
+        <% tiers.forEach(function(tier, i) { %>
+          <div class="dl-price-card <%= i === 1 ? 'featured' : '' %>">
+            <% if (i === 1) { %><div class="dl-badge">Популярно</div><% } %>
+            <div class="dl-qty"><%= tier.qty %> карт</div>
+            <div class="dl-price"><%= tier.pricePerCard.toFixed(2) %>€<small> / карта</small></div>
+            <div class="dl-per">Для организаций и команд</div>
+          </div>
+        <% }) %>
+      </div>
+      <p class="dl-hint" style="text-align:center; margin-top:20px;">Для одного человека — от 19.90€ за карту. Точная цена считается на странице заказа.</p>
+    </div>
+  </section>
+
+  <section class="dl-section">
+    <div class="dl-container">
+      <h2>Дизайн</h2>
+      <p class="dl-subtitle">Три варианта оформления карты</p>
+      <div class="dl-options">
+        <div class="dl-option-card">
+          <h3>Классическая белая</h3>
+          <div class="dl-option-price">Включено</div>
+          <p>Минималистичная белая NFC-карта без дополнительной печати.</p>
+        </div>
+        <div class="dl-option-card">
+          <h3>Ваш логотип на карте</h3>
+          <div class="dl-option-price">+3€ за карту</div>
+          <p>Печатаем имя и логотип прямо на карте — выглядит как настоящая фирменная визитка.</p>
+        </div>
+        <div class="dl-option-card">
+          <h3>Стикер с логотипом</h3>
+          <div class="dl-option-price">+1€ за карту</div>
+          <p>Наклейка с логотипом и нужными изображениями поверх стандартной карты.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dl-cta">
+    <div class="dl-container narrow">
+      <h2 style="margin-bottom:16px;">Готовы попробовать?</h2>
+      <a href="/order" class="dl-btn primary">Оформить заказ</a>
+    </div>
+  </section>
+
+  <footer class="dl-footer">
+    <div class="dl-container">
+      digilama — digital + lama · <a href="/customer/login">Личный кабинет</a> · <a href="/privacy">Политика конфиденциальности</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Заказы Digilama — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <h1>Заказы Digilama</h1>
+    <% if (orders.length === 0) { %>
+      <div class="card"><p>Заказов пока нет.</p></div>
+    <% } else { %>
+      <div class="card table-scroll" style="padding:0;">
+        <table class="cards-table">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Клиент</th>
+              <th>Тип</th>
+              <th>Кол-во</th>
+              <th>Дизайн</th>
+              <th>Итого</th>
+              <th>Статус</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function(order) { %>
+              <tr>
+                <td><%= new Date(order.createdAt).toLocaleString('ru-RU') %></td>
+                <td><%= order.customer ? order.customer.contactName : '—' %><br/><span class="hint"><%= order.customer ? order.customer.email : '' %></span></td>
+                <td><span class="badge"><%= order.kind === 'organization' ? 'Организация' : 'Для себя' %></span></td>
+                <td><%= order.quantity %></td>
+                <td><%= order.design %></td>
+                <td><%= order.totalPriceEur.toFixed(2) %>€</td>
+                <td><span class="badge"><%= order.status %></span></td>
+                <td><a href="/admin/orders/<%= order.id %>" class="btn secondary" style="padding:6px 14px; font-size:13px;">Открыть</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

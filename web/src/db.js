@@ -21,9 +21,13 @@ function defaultData() {
       passwordHash: bcrypt.hashSync('admin123', 10),
       recoveryCodeHash: null,
       failedAttempts: 0,
-      lockedUntil: null
+      lockedUntil: null,
+      totpSecret: null,
+      totpEnabled: false
     },
-    cards: []
+    cards: [],
+    customers: [],
+    orders: []
   };
 }
 
@@ -48,6 +52,14 @@ function saveToFile(data) {
 // the durable source of truth and every mutation is also pushed there.
 let state = loadFromFile() || defaultData();
 
+/** Fills in fields introduced after some databases were already created, so old data doesn't crash new code. */
+function applyDefaults(s) {
+  if (!Array.isArray(s.customers)) s.customers = [];
+  if (!Array.isArray(s.orders)) s.orders = [];
+  return s;
+}
+state = applyDefaults(state);
+
 /**
  * Must be awaited once at startup, before the server accepts requests.
  * Pulls the durable copy from Redis (if configured) into memory.
@@ -57,7 +69,7 @@ async function init() {
   try {
     const raw = await redisClient.get(REDIS_KEY);
     if (raw) {
-      state = JSON.parse(raw);
+      state = applyDefaults(JSON.parse(raw));
     } else {
       // First run against this Redis instance: seed it with what we have.
       await redisClient.set(REDIS_KEY, JSON.stringify(state));
@@ -96,6 +108,21 @@ module.exports = {
   },
   setRecoveryCodeHash(hash) {
     state.admin.recoveryCodeHash = hash;
+    persist();
+  },
+  /** Stores a freshly generated TOTP secret while setup is pending confirmation (not yet enabled). */
+  setPendingTotpSecret(secret) {
+    state.admin.totpSecret = secret;
+    state.admin.totpEnabled = false;
+    persist();
+  },
+  enableTotp() {
+    state.admin.totpEnabled = true;
+    persist();
+  },
+  disableTotp() {
+    state.admin.totpSecret = null;
+    state.admin.totpEnabled = false;
     persist();
   },
   recordFailedLogin(maxAttempts, lockoutMs) {
@@ -182,5 +209,45 @@ module.exports = {
     if (!Array.isArray(cards)) throw new Error('Ожидался массив карточек');
     state.cards = cards;
     persist();
+  },
+
+  // ---------- Digilama storefront: customers & orders ----------
+
+  getCustomerByEmail(email) {
+    const normalized = (email || '').trim().toLowerCase();
+    return state.customers.find((c) => c.email === normalized) || null;
+  },
+  getCustomerById(id) {
+    return state.customers.find((c) => c.id === id) || null;
+  },
+  addCustomer(customer) {
+    state.customers.push(customer);
+    persist();
+    return customer;
+  },
+  listOrders() {
+    return [...state.orders].sort((a, b) => b.createdAt - a.createdAt);
+  },
+  listOrdersByCustomer(customerId) {
+    return state.orders.filter((o) => o.customerId === customerId).sort((a, b) => b.createdAt - a.createdAt);
+  },
+  getOrderById(id) {
+    return state.orders.find((o) => o.id === id) || null;
+  },
+  addOrder(order) {
+    state.orders.push(order);
+    persist();
+    return order;
+  },
+  updateOrder(id, patch) {
+    const order = state.orders.find((o) => o.id === id);
+    if (!order) return null;
+    Object.assign(order, patch);
+    persist();
+    return order;
+  },
+  /** Cards belonging to a customer's account (linked by an admin after an order is fulfilled). */
+  listCardsByCustomer(customerId) {
+    return state.cards.filter((c) => c.customerId === customerId && !c.deletedAt);
   }
 };

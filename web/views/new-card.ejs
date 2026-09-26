@@ -17,7 +17,12 @@
         <div class="error-box"><%= error %></div>
       <% } %>
 
+      <% if (orderId) { %>
+        <div class="success-box">Карточка создаётся для заказа Digilama — после сохранения она будет привязана к аккаунту клиента.</div>
+      <% } %>
+
       <form method="post" action="/admin/cards/new" enctype="multipart/form-data" id="card-form">
+        <input type="hidden" name="orderId" value="<%= orderId || '' %>" />
         <div class="type-picker" id="type-picker">
           <label><input type="radio" name="type" value="profile" checked /><span>Профиль (визитка)</span></label>
           <label><input type="radio" name="type" value="url" /><span>Внешний сайт</span></label>

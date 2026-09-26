@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Заказ — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container narrow">
+    <p><a href="/admin/orders">← Все заказы</a></p>
+    <div class="card">
+      <h1>Заказ №<%= order.id.slice(0, 8) %></h1>
+
+      <div class="payload-box" style="text-align:left;">
+        <p><strong>Клиент:</strong> <%= customer ? customer.contactName : '—' %></p>
+        <p><strong>Email:</strong> <%= customer ? customer.email : '—' %></p>
+        <p><strong>Телефон:</strong> <%= customer ? (customer.phone || '—') : '—' %></p>
+        <% if (order.kind === 'organization') { %><p><strong>Организация:</strong> <%= customer ? (customer.company || '—') : '—' %></p><% } %>
+        <p><strong>Тип:</strong> <%= order.kind === 'organization' ? 'Для организации' : 'Для себя' %></p>
+        <p><strong>Количество:</strong> <%= order.quantity %></p>
+        <p><strong>Дизайн:</strong> <%= designOptions[order.design].label %></p>
+        <p><strong>Цена за карту:</strong> <%= order.pricePerCard.toFixed(2) %>€</p>
+        <p><strong>Итого:</strong> <%= order.totalPriceEur.toFixed(2) %>€</p>
+        <% if (order.cardDetailsNote) { %><p><strong>Данные для карты(-очек):</strong><br/><%= order.cardDetailsNote %></p><% } %>
+        <% if (order.shippingAddress) { %><p><strong>Адрес доставки:</strong><br/><%= order.shippingAddress %></p><% } %>
+      </div>
+
+      <div class="field">
+        <label for="status">Статус заказа</label>
+        <form method="post" action="/admin/orders/<%= order.id %>/status" class="row" style="gap:10px;">
+          <select id="status" name="status">
+            <% ['new','contacted','paid','fulfilled','cancelled'].forEach(function(s) { %>
+              <option value="<%= s %>" <%= order.status === s ? 'selected' : '' %>><%= s %></option>
+            <% }) %>
+          </select>
+          <button type="submit" class="btn secondary">Сохранить статус</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Карточки по этому заказу</h2>
+      <% if (cards.length === 0) { %>
+        <p class="hint" style="margin-top:-6px;">Карточка ещё не создана.</p>
+      <% } else { %>
+        <ul>
+          <% cards.forEach(function(card) { %>
+            <li><a href="/admin/cards/<%= card.id %>"><%= card.label %></a></li>
+          <% }) %>
+        </ul>
+      <% } %>
+      <a href="/admin/cards/new?orderId=<%= order.id %>" class="btn">+ Создать карточку для этого заказа</a>
+    </div>
+  </div>
+</body>
+</html>

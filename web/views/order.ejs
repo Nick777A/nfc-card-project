@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Заказать NFC-карту — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+  <nav class="dl-nav">
+    <a class="dl-logo" href="/">digilama</a>
+    <div class="dl-nav-links">
+      <a href="/customer/login">Личный кабинет</a>
+    </div>
+  </nav>
+
+  <div class="dl-container narrow" style="padding-bottom:60px;">
+    <div class="dl-card">
+      <h1 style="margin-top:0;">Оформить заказ</h1>
+
+      <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
+
+      <form method="post" action="/order" id="order-form">
+        <div class="dl-field">
+          <label>Для кого карта?</label>
+          <div class="dl-choice-group" id="kind-group">
+            <label class="dl-choice"><input type="radio" name="kind" value="person" <%= values.kind !== 'organization' ? 'checked' : '' %> /><div class="dl-choice-title">Для себя</div><div class="dl-choice-sub">Одна личная карта</div></label>
+            <label class="dl-choice"><input type="radio" name="kind" value="organization" <%= values.kind === 'organization' ? 'checked' : '' %> /><div class="dl-choice-title">Для организации</div><div class="dl-choice-sub">Несколько карт для команды</div></label>
+          </div>
+        </div>
+
+        <div class="dl-field">
+          <label for="quantity">Количество карт</label>
+          <input type="number" id="quantity" name="quantity" min="1" max="500" value="<%= values.quantity || 1 %>" />
+        </div>
+
+        <div class="dl-field">
+          <label>Дизайн</label>
+          <div class="dl-choice-group cols-3" id="design-group">
+            <% Object.keys(designOptions).forEach(function(key) { %>
+              <label class="dl-choice">
+                <input type="radio" name="design" value="<%= key %>" <%= (values.design || 'classic') === key ? 'checked' : '' %> />
+                <div class="dl-choice-title"><%= designOptions[key].label %></div>
+                <div class="dl-choice-sub"><%= designOptions[key].pricePerCard > 0 ? '+' + designOptions[key].pricePerCard.toFixed(2) + '€' : 'Включено' %></div>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div class="dl-summary" id="price-summary">
+          <div class="dl-summary-row"><span>Цена за карту</span><span id="price-per-card">—</span></div>
+          <div class="dl-summary-row"><span>Количество</span><span id="price-qty">—</span></div>
+          <div class="dl-summary-row total"><span>Итого</span><span id="price-total">—</span></div>
+        </div>
+
+        <div class="dl-field">
+          <label for="contactName">Ваше имя (контактное лицо)</label>
+          <input type="text" id="contactName" name="contactName" value="<%= values.contactName || '' %>" required />
+        </div>
+
+        <div class="dl-row">
+          <div class="dl-field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="<%= values.email || '' %>" required />
+          </div>
+          <div class="dl-field">
+            <label for="phone">Телефон</label>
+            <input type="tel" id="phone" name="phone" value="<%= values.phone || '' %>" />
+          </div>
+        </div>
+
+        <div class="dl-field" id="company-field" style="display:none;">
+          <label for="company">Название организации</label>
+          <input type="text" id="company" name="company" value="<%= values.company || '' %>" />
+        </div>
+
+        <div class="dl-field">
+          <label for="cardDetailsNote">Что указать на карте(-ах)</label>
+          <textarea id="cardDetailsNote" name="cardDetailsNote" placeholder="Имя, должность, ссылки на соцсети и т.д. Если карт несколько — перечислите данные для каждой."><%= values.cardDetailsNote || '' %></textarea>
+        </div>
+
+        <div class="dl-field">
+          <label for="shippingAddress">Адрес доставки</label>
+          <textarea id="shippingAddress" name="shippingAddress"><%= values.shippingAddress || '' %></textarea>
+        </div>
+
+        <div class="dl-field">
+          <label for="password">Пароль для личного кабинета</label>
+          <input type="password" id="password" name="password" minlength="6" required />
+          <p class="dl-hint">Понадобится, чтобы потом самостоятельно менять данные на карте.</p>
+        </div>
+        <div class="dl-field">
+          <label for="confirmPassword">Повторите пароль</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" required />
+        </div>
+
+        <button type="submit" class="dl-btn primary block">Отправить заявку</button>
+        <p class="dl-hint" style="text-align:center;">Это заявка, не оплата — мы свяжемся с вами по указанным контактам, чтобы подтвердить детали и оплату.</p>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/order.js"></script>
+</body>
+</html>

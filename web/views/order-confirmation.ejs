@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Заявка отправлена — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+  <nav class="dl-nav">
+    <a class="dl-logo" href="/">digilama</a>
+    <div class="dl-nav-links"><a href="/my">Личный кабинет</a></div>
+  </nav>
+
+  <div class="dl-container narrow" style="padding-bottom:60px;">
+    <div class="dl-card">
+      <div class="dl-success">Заявка №<%= order.id.slice(0, 8) %> принята! Мы свяжемся с вами по указанным контактам для подтверждения деталей и оплаты.</div>
+      <h1 style="margin-top:0;">Ваш заказ</h1>
+      <div class="dl-summary">
+        <div class="dl-summary-row"><span>Тип</span><span><%= order.kind === 'organization' ? 'Для организации' : 'Для себя' %></span></div>
+        <div class="dl-summary-row"><span>Дизайн</span><span><%= designOptions[order.design].label %></span></div>
+        <div class="dl-summary-row"><span>Количество</span><span><%= order.quantity %></span></div>
+        <div class="dl-summary-row"><span>Цена за карту</span><span><%= order.pricePerCard.toFixed(2) %>€</span></div>
+        <div class="dl-summary-row total"><span>Итого</span><span><%= order.totalPriceEur.toFixed(2) %>€</span></div>
+      </div>
+      <p class="dl-hint">Аккаунт личного кабинета уже создан на ваш email — вы вошли автоматически. Как только карта будет готова, она появится в разделе «Мои карты», и вы сможете редактировать данные на ней в любой момент.</p>
+      <a href="/my" class="dl-btn primary block">Перейти в личный кабинет</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,6 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+
+// Sentry must be initialized before anything else is required so it can
+// instrument them; it's a no-op with no network calls when SENTRY_DSN is unset.
+const Sentry = require('@sentry/node');
+if (process.env.SENTRY_DSN) {
+  Sentry.init({ dsn: process.env.SENTRY_DSN, environment: process.env.NODE_ENV || 'development', tracesSampleRate: 0.1 });
+}
+
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
@@ -9,6 +17,7 @@ const QRCode = require('qrcode');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const slowDown = require('express-slow-down');
+const { authenticator } = require('otplib');
 
 const { parse: parseCsv } = require('csv-parse/sync');
 
@@ -16,6 +25,7 @@ const db = require('./src/db');
 const { generateSlug, buildVCard, resolveTagPayload } = require('./src/cardPayload');
 const { LANGUAGES, translate, resolveLang } = require('./src/i18n');
 const { detectSocial } = require('./src/socialIcons');
+const { DESIGN_OPTIONS, computeOrderPricing } = require('./src/pricing');
 
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -25,9 +35,13 @@ if (IS_PRODUCTION && !process.env.SESSION_SECRET) {
 }
 const AUTH_COOKIE = 'admin_session';
 const AUTH_COOKIE_MAX_AGE = 12 * 60 * 60 * 1000; // 12h
+const PENDING_2FA_COOKIE = 'admin_2fa_pending';
+const PENDING_2FA_MAX_AGE = 5 * 60 * 1000; // 5 minutes to enter the code
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
 const BACKUP_TOKEN = process.env.BACKUP_TOKEN;
+const CUSTOMER_AUTH_COOKIE = 'customer_session';
+const CUSTOMER_AUTH_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -74,19 +88,53 @@ const loginSlowDown = slowDown({
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 
+// Local disk survives just fine in dev, but on Render's free tier it's wiped
+// on every redeploy — so once Cloudinary credentials are configured, uploaded
+// photos/images go there instead and get a durable, CDN-backed URL.
+const CLOUDINARY_CONFIGURED = !!(
+  process.env.CLOUDINARY_URL ||
+  (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+);
+let cloudinary = null;
+if (CLOUDINARY_CONFIGURED) {
+  cloudinary = require('cloudinary').v2;
+  if (!process.env.CLOUDINARY_URL) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+  }
+}
+
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadsDir,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname).slice(0, 10);
-      cb(null, `${crypto.randomBytes(8).toString('hex')}${ext}`);
-    }
-  }),
+  storage: CLOUDINARY_CONFIGURED
+    ? multer.memoryStorage()
+    : multer.diskStorage({
+        destination: uploadsDir,
+        filename: (req, file, cb) => {
+          const ext = path.extname(file.originalname).slice(0, 10);
+          cb(null, `${crypto.randomBytes(8).toString('hex')}${ext}`);
+        }
+      }),
   limits: { fileSize: 8 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     cb(null, /^image\//.test(file.mimetype));
   }
 });
+
+/** Resolves an uploaded image field to a durable URL: local /uploads/... path, or a Cloudinary URL when configured. */
+function resolveUploadedUrl(file) {
+  if (!file) return Promise.resolve(null);
+  if (!CLOUDINARY_CONFIGURED) return Promise.resolve(`/uploads/${file.filename}`);
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'nfc-card-uploads', resource_type: 'image' },
+      (err, result) => (err ? reject(err) : resolve(result.secure_url))
+    );
+    stream.end(file.buffer);
+  });
+}
 
 // Small text-file uploads (JSON backups, CSV bulk-import) never need to touch disk.
 const memoryUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -102,6 +150,17 @@ function isAuthed(req) {
 function requireAuth(req, res, next) {
   if (isAuthed(req)) return next();
   return res.redirect('/login');
+}
+
+function currentCustomerId(req) {
+  return (req.signedCookies && req.signedCookies[CUSTOMER_AUTH_COOKIE]) || null;
+}
+
+function requireCustomerAuth(req, res, next) {
+  const id = currentCustomerId(req);
+  if (!id || !db.getCustomerById(id)) return res.redirect('/customer/login');
+  req.customerId = id;
+  next();
 }
 
 /** A human-typeable one-time recovery code, e.g. "K7H4-9XPT-3RQW-Y2LM". */
@@ -138,15 +197,19 @@ function normalizeExternalUrl(url) {
  * `existing` carries over the previous card's file URLs when no new file
  * was submitted this time.
  */
-function cardFieldsFromBody(body, files, existing = {}) {
+async function cardFieldsFromBody(body, files, existing = {}) {
   const imageFile = files && files.image && files.image[0];
   const photoFile = files && files.photo && files.photo[0];
+  const [uploadedImageUrl, uploadedPhotoUrl] = await Promise.all([
+    resolveUploadedUrl(imageFile),
+    resolveUploadedUrl(photoFile)
+  ]);
   return {
     type: body.type,
     label: (body.label || body.fullName || body.targetUrl || body.wifiSsid || 'Карточка').trim(),
     // profile
     fullName: body.fullName || '',
-    photoUrl: photoFile ? `/uploads/${photoFile.filename}` : existing.photoUrl || '',
+    photoUrl: uploadedPhotoUrl || existing.photoUrl || '',
     phone: body.phone || '',
     email: body.email || '',
     company: body.company || '',
@@ -154,7 +217,7 @@ function cardFieldsFromBody(body, files, existing = {}) {
     links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
     // url / image
     targetUrl: normalizeExternalUrl(body.targetUrl),
-    imageUrl: imageFile ? `/uploads/${imageFile.filename}` : normalizeExternalUrl(body.imageUrl) || existing.imageUrl || '',
+    imageUrl: uploadedImageUrl || normalizeExternalUrl(body.imageUrl) || existing.imageUrl || '',
     // wifi
     wifiSsid: body.wifiSsid || '',
     wifiPassword: body.wifiPassword || '',
@@ -191,7 +254,59 @@ app.post('/login', loginLimiter, loginSlowDown, (req, res) => {
     db.recordFailedLogin(MAX_LOGIN_ATTEMPTS, LOCKOUT_MS);
     return res.render('login', { error: 'Неверный логин или пароль' });
   }
+
+  if (admin.totpEnabled) {
+    // Password alone isn't enough — hold off on the real session cookie until
+    // the second factor is verified too.
+    res.cookie(PENDING_2FA_COOKIE, 'admin', {
+      signed: true,
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: 'lax',
+      maxAge: PENDING_2FA_MAX_AGE
+    });
+    return res.redirect('/login/2fa');
+  }
+
   db.recordSuccessfulLogin();
+  setAuthCookie(res);
+  res.redirect('/admin');
+});
+
+app.get('/login/2fa', (req, res) => {
+  if (!req.signedCookies || req.signedCookies[PENDING_2FA_COOKIE] !== 'admin') {
+    return res.redirect('/login');
+  }
+  res.render('login-2fa', { error: null });
+});
+
+app.post('/login/2fa', loginLimiter, loginSlowDown, (req, res) => {
+  if (!req.signedCookies || req.signedCookies[PENDING_2FA_COOKIE] !== 'admin') {
+    return res.redirect('/login');
+  }
+  const remainingLockMs = db.getLockoutRemainingMs();
+  if (remainingLockMs > 0) {
+    const minutes = Math.ceil(remainingLockMs / 60000);
+    return res.render('login-2fa', {
+      error: `Слишком много неверных попыток. Аккаунт временно заблокирован — попробуйте через ${minutes} мин.`
+    });
+  }
+
+  const admin = db.getAdmin();
+  const code = (req.body.code || '').replace(/\s+/g, '');
+  const valid = admin.totpSecret && authenticator.check(code, admin.totpSecret);
+  if (!valid) {
+    db.recordFailedLogin(MAX_LOGIN_ATTEMPTS, LOCKOUT_MS);
+    return res.render('login-2fa', { error: 'Неверный код' });
+  }
+
+  db.recordSuccessfulLogin();
+  res.clearCookie(PENDING_2FA_COOKIE);
+  setAuthCookie(res);
+  res.redirect('/admin');
+});
+
+function setAuthCookie(res) {
   res.cookie(AUTH_COOKIE, 'admin', {
     signed: true,
     httpOnly: true,
@@ -199,15 +314,167 @@ app.post('/login', loginLimiter, loginSlowDown, (req, res) => {
     sameSite: 'lax',
     maxAge: AUTH_COOKIE_MAX_AGE
   });
-  res.redirect('/admin');
-});
+}
 
 app.post('/logout', (req, res) => {
   res.clearCookie(AUTH_COOKIE);
   res.redirect('/login');
 });
 
-app.get('/', (req, res) => res.redirect(isAuthed(req) ? '/admin' : '/login'));
+// ---------- Digilama: public storefront (landing, order form, customer accounts) ----------
+
+app.get('/', (req, res) => {
+  if (isAuthed(req)) return res.redirect('/admin');
+  if (currentCustomerId(req)) return res.redirect('/my');
+  res.render('landing', { tiers: computeVolumeTiersForDisplay(), designOptions: DESIGN_OPTIONS });
+});
+
+function computeVolumeTiersForDisplay() {
+  return [
+    { qty: '1–2', ...computeOrderPricing(1, 'classic') },
+    { qty: '3–9', ...computeOrderPricing(3, 'classic') },
+    { qty: '10+', ...computeOrderPricing(10, 'classic') }
+  ];
+}
+
+app.get('/order/price', (req, res) => {
+  const pricing = computeOrderPricing(req.query.quantity, req.query.design);
+  res.json(pricing);
+});
+
+app.get('/order', (req, res) => {
+  res.render('order', { error: null, values: {}, designOptions: DESIGN_OPTIONS });
+});
+
+app.post('/order', loginLimiter, (req, res) => {
+  const body = req.body;
+  const render = (error) => res.render('order', { error, values: body, designOptions: DESIGN_OPTIONS });
+
+  const kind = body.kind === 'organization' ? 'organization' : 'person';
+  const email = (body.email || '').trim().toLowerCase();
+  const contactName = (body.contactName || '').trim();
+  const password = body.password || '';
+
+  if (!contactName) return render('Укажите имя контактного лица');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Укажите корректный email');
+  if (password.length < 6) return render('Пароль должен быть не короче 6 символов');
+  if (password !== body.confirmPassword) return render('Пароли не совпадают');
+
+  const existing = db.getCustomerByEmail(email);
+  if (existing) {
+    return render('Аккаунт с таким email уже существует — войдите в личный кабинет, чтобы оформить новый заказ');
+  }
+
+  const pricing = computeOrderPricing(body.quantity, body.design);
+
+  const customer = {
+    id: crypto.randomUUID(),
+    email,
+    passwordHash: bcrypt.hashSync(password, 10),
+    contactName,
+    phone: (body.phone || '').trim(),
+    company: (body.company || '').trim(),
+    createdAt: Date.now()
+  };
+  db.addCustomer(customer);
+
+  const order = {
+    id: crypto.randomUUID(),
+    customerId: customer.id,
+    kind,
+    quantity: pricing.quantity,
+    design: pricing.design,
+    pricePerCard: pricing.pricePerCard,
+    totalPriceEur: pricing.total,
+    cardDetailsNote: (body.cardDetailsNote || '').trim(),
+    shippingAddress: (body.shippingAddress || '').trim(),
+    status: 'new',
+    cardIds: [],
+    createdAt: Date.now()
+  };
+  db.addOrder(order);
+
+  res.cookie(CUSTOMER_AUTH_COOKIE, customer.id, {
+    signed: true,
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax',
+    maxAge: CUSTOMER_AUTH_COOKIE_MAX_AGE
+  });
+  res.redirect(`/order/${order.id}/confirmation`);
+});
+
+app.get('/order/:id/confirmation', requireCustomerAuth, (req, res) => {
+  const order = db.getOrderById(req.params.id);
+  if (!order || order.customerId !== req.customerId) return res.status(404).send('Заказ не найден');
+  res.render('order-confirmation', { order, designOptions: DESIGN_OPTIONS });
+});
+
+// ---------- Digilama: customer account (self-service editing of their own cards) ----------
+
+app.get('/customer/login', (req, res) => {
+  if (currentCustomerId(req)) return res.redirect('/my');
+  res.render('customer-login', { error: null });
+});
+
+app.post('/customer/login', loginLimiter, loginSlowDown, (req, res) => {
+  const email = (req.body.email || '').trim().toLowerCase();
+  const customer = db.getCustomerByEmail(email);
+  const ok = customer && bcrypt.compareSync(req.body.password || '', customer.passwordHash);
+  if (!ok) return res.render('customer-login', { error: 'Неверный email или пароль' });
+
+  res.cookie(CUSTOMER_AUTH_COOKIE, customer.id, {
+    signed: true,
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax',
+    maxAge: CUSTOMER_AUTH_COOKIE_MAX_AGE
+  });
+  res.redirect('/my');
+});
+
+app.post('/customer/logout', (req, res) => {
+  res.clearCookie(CUSTOMER_AUTH_COOKIE);
+  res.redirect('/customer/login');
+});
+
+app.get('/my', requireCustomerAuth, (req, res) => {
+  const orders = db.listOrdersByCustomer(req.customerId);
+  const cards = db.listCardsByCustomer(req.customerId);
+  res.render('customer-dashboard', { orders, cards, designOptions: DESIGN_OPTIONS, base: baseUrl(req) });
+});
+
+app.get('/my/cards/:id/edit', requireCustomerAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card || card.customerId !== req.customerId) return res.status(404).send('Карточка не найдена');
+  res.render('customer-edit-card', { card, error: null });
+});
+
+app.post('/my/cards/:id/edit', requireCustomerAuth, upload.single('photo'), async (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card || card.customerId !== req.customerId) return res.status(404).send('Карточка не найдена');
+
+  let photoUrl = card.photoUrl;
+  try {
+    photoUrl = (await resolveUploadedUrl(req.file)) || card.photoUrl;
+  } catch (e) {
+    console.error('Upload failed:', e.message);
+    return res.render('customer-edit-card', { card, error: 'Не удалось загрузить фото, попробуйте ещё раз' });
+  }
+
+  const body = req.body;
+  db.updateCard(card.id, {
+    fullName: body.fullName || '',
+    phone: body.phone || '',
+    email: body.email || '',
+    company: body.company || '',
+    jobTitle: body.jobTitle || '',
+    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
+    photoUrl,
+    updatedAt: Date.now()
+  });
+  res.redirect('/my');
+});
 
 // ---------- Admin: dashboard ----------
 
@@ -221,8 +488,44 @@ app.get('/admin', requireAuth, (req, res) => {
   res.render('dashboard', { cards, stats, base: baseUrl(req), usingDefaultPassword });
 });
 
+// ---------- Admin: Digilama orders ----------
+
+app.get('/admin/orders', requireAuth, (req, res) => {
+  const orders = db.listOrders().map((o) => ({ ...o, customer: db.getCustomerById(o.customerId) }));
+  res.render('admin-orders', { orders });
+});
+
+app.get('/admin/orders/:id', requireAuth, (req, res) => {
+  const order = db.getOrderById(req.params.id);
+  if (!order) return res.status(404).send('Заказ не найден');
+  const customer = db.getCustomerById(order.customerId);
+  const cards = order.cardIds.map((id) => db.getCardById(id)).filter(Boolean);
+  res.render('admin-order-detail', { order, customer, cards, designOptions: DESIGN_OPTIONS });
+});
+
+app.post('/admin/orders/:id/status', requireAuth, (req, res) => {
+  const order = db.getOrderById(req.params.id);
+  if (!order) return res.status(404).send('Заказ не найден');
+  const allowed = ['new', 'contacted', 'paid', 'fulfilled', 'cancelled'];
+  if (allowed.includes(req.body.status)) {
+    db.updateOrder(order.id, { status: req.body.status });
+  }
+  res.redirect(`/admin/orders/${order.id}`);
+});
+
 app.get('/admin/cards/new', requireAuth, (req, res) => {
-  res.render('new-card', { error: null, values: {}, base: baseUrl(req) });
+  const orderId = (req.query.orderId || '').toString();
+  const order = orderId ? db.getOrderById(orderId) : null;
+  const values = order
+    ? {
+        type: 'profile',
+        fullName: order.kind === 'organization' ? '' : order.customerId && db.getCustomerById(order.customerId)?.contactName,
+        company: order.customerId ? db.getCustomerById(order.customerId)?.company : '',
+        email: order.customerId ? db.getCustomerById(order.customerId)?.email : '',
+        phone: order.customerId ? db.getCustomerById(order.customerId)?.phone : ''
+      }
+    : {};
+  res.render('new-card', { error: null, values, base: baseUrl(req), orderId: order ? order.id : '' });
 });
 
 const uploadCardFiles = upload.fields([
@@ -230,18 +533,29 @@ const uploadCardFiles = upload.fields([
   { name: 'photo', maxCount: 1 }
 ]);
 
-app.post('/admin/cards/new', requireAuth, uploadCardFiles, (req, res) => {
+app.post('/admin/cards/new', requireAuth, uploadCardFiles, async (req, res) => {
   const body = req.body;
+  const orderId = (body.orderId || '').toString();
 
   if (!body.type) {
-    return res.render('new-card', { error: 'Выберите тип карточки', values: body, base: baseUrl(req) });
+    return res.render('new-card', { error: 'Выберите тип карточки', values: body, base: baseUrl(req), orderId });
   }
 
   let slug = (body.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
   if (!slug) slug = generateSlug();
   if (db.slugTaken(slug)) {
-    return res.render('new-card', { error: 'Такой короткий адрес уже занят, выберите другой', values: body, base: baseUrl(req) });
+    return res.render('new-card', { error: 'Такой короткий адрес уже занят, выберите другой', values: body, base: baseUrl(req), orderId });
   }
+
+  let fields;
+  try {
+    fields = await cardFieldsFromBody(body, req.files);
+  } catch (e) {
+    console.error('Upload failed:', e.message);
+    return res.render('new-card', { error: 'Не удалось загрузить изображение, попробуйте ещё раз', values: body, base: baseUrl(req), orderId });
+  }
+
+  const order = orderId ? db.getOrderById(orderId) : null;
 
   const card = {
     id: crypto.randomUUID(),
@@ -250,10 +564,16 @@ app.post('/admin/cards/new', requireAuth, uploadCardFiles, (req, res) => {
     viewCount: 0,
     lastViewedAt: null,
     active: true,
-    ...cardFieldsFromBody(body, req.files)
+    customerId: order ? order.customerId : null,
+    ...fields
   };
 
   db.addCard(card);
+
+  if (order) {
+    db.updateOrder(order.id, { cardIds: [...order.cardIds, card.id], status: 'fulfilled' });
+  }
+
   res.redirect(`/admin/cards/${card.id}`);
 });
 
@@ -263,7 +583,7 @@ app.get('/admin/cards/:id/edit', requireAuth, (req, res) => {
   res.render('edit-card', { card, error: null });
 });
 
-app.post('/admin/cards/:id/edit', requireAuth, uploadCardFiles, (req, res) => {
+app.post('/admin/cards/:id/edit', requireAuth, uploadCardFiles, async (req, res) => {
   const card = db.getCardById(req.params.id);
   if (!card) return res.status(404).send('Карточка не найдена');
 
@@ -271,7 +591,13 @@ app.post('/admin/cards/:id/edit', requireAuth, uploadCardFiles, (req, res) => {
     return res.render('edit-card', { card, error: 'Выберите тип карточки' });
   }
 
-  const updated = cardFieldsFromBody(req.body, req.files, { imageUrl: card.imageUrl, photoUrl: card.photoUrl });
+  let updated;
+  try {
+    updated = await cardFieldsFromBody(req.body, req.files, { imageUrl: card.imageUrl, photoUrl: card.photoUrl });
+  } catch (e) {
+    console.error('Upload failed:', e.message);
+    return res.render('edit-card', { card, error: 'Не удалось загрузить изображение, попробуйте ещё раз' });
+  }
   db.updateCard(card.id, { ...updated, updatedAt: Date.now() });
   res.redirect(`/admin/cards/${card.id}`);
 });
@@ -477,11 +803,13 @@ app.post('/admin/import', requireAuth, memoryUpload.single('backupFile'), (req, 
 });
 
 app.get('/admin/change-password', requireAuth, (req, res) => {
+  const admin = db.getAdmin();
   res.render('change-password', {
     error: null,
     success: null,
     newRecoveryCode: null,
-    hasRecoveryCode: !!db.getAdmin().recoveryCodeHash
+    hasRecoveryCode: !!admin.recoveryCodeHash,
+    totpEnabled: !!admin.totpEnabled
   });
 });
 
@@ -489,7 +817,13 @@ app.post('/admin/change-password', requireAuth, (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
   const admin = db.getAdmin();
   const render = (error, success) =>
-    res.render('change-password', { error, success, newRecoveryCode: null, hasRecoveryCode: !!admin.recoveryCodeHash });
+    res.render('change-password', {
+      error,
+      success,
+      newRecoveryCode: null,
+      hasRecoveryCode: !!admin.recoveryCodeHash,
+      totpEnabled: !!admin.totpEnabled
+    });
 
   if (!bcrypt.compareSync(currentPassword || '', admin.passwordHash)) {
     return render('Текущий пароль неверен', null);
@@ -511,7 +845,56 @@ app.post('/admin/generate-recovery-code', requireAuth, (req, res) => {
     error: null,
     success: null,
     newRecoveryCode: rawCode,
-    hasRecoveryCode: true
+    hasRecoveryCode: true,
+    totpEnabled: !!db.getAdmin().totpEnabled
+  });
+});
+
+// ---------- Two-factor authentication (TOTP, e.g. Google/Microsoft Authenticator) ----------
+
+app.get('/admin/2fa/setup', requireAuth, async (req, res) => {
+  const admin = db.getAdmin();
+  if (admin.totpEnabled) return res.redirect('/admin/change-password');
+
+  const secret = authenticator.generateSecret();
+  db.setPendingTotpSecret(secret);
+  const otpauthUrl = authenticator.keyuri(admin.username, 'NFC Card Admin', secret);
+  const qrDataUrl = await QRCode.toDataURL(otpauthUrl, { margin: 1, width: 220 });
+  res.render('2fa-setup', { secret, qrDataUrl, error: null });
+});
+
+app.post('/admin/2fa/setup', requireAuth, (req, res) => {
+  const admin = db.getAdmin();
+  const code = (req.body.code || '').replace(/\s+/g, '');
+  if (!admin.totpSecret || !authenticator.check(code, admin.totpSecret)) {
+    return res.render('2fa-setup', {
+      secret: admin.totpSecret,
+      qrDataUrl: null,
+      error: 'Неверный код, попробуйте ещё раз'
+    });
+  }
+  db.enableTotp();
+  res.redirect('/admin/change-password');
+});
+
+app.post('/admin/2fa/disable', requireAuth, (req, res) => {
+  const admin = db.getAdmin();
+  if (!bcrypt.compareSync(req.body.password || '', admin.passwordHash)) {
+    return res.render('change-password', {
+      error: 'Неверный пароль — двухфакторная аутентификация не отключена',
+      success: null,
+      newRecoveryCode: null,
+      hasRecoveryCode: !!admin.recoveryCodeHash,
+      totpEnabled: !!admin.totpEnabled
+    });
+  }
+  db.disableTotp();
+  res.render('change-password', {
+    error: null,
+    success: 'Двухфакторная аутентификация отключена',
+    newRecoveryCode: null,
+    hasRecoveryCode: !!admin.recoveryCodeHash,
+    totpEnabled: false
   });
 });
 
@@ -616,6 +999,16 @@ app.get('/u/:slug/vcard', (req, res) => {
   res.set('Content-Type', 'text/vcard; charset=utf-8');
   res.set('Content-Disposition', `attachment; filename="${(card.fullName || 'contact').replace(/[^a-z0-9]/gi, '_')}.vcf"`);
   res.send(vcard);
+});
+
+if (process.env.SENTRY_DSN) Sentry.setupExpressErrorHandler(app);
+
+// Final safety net: anything an individual route handler didn't catch lands
+// here instead of Express's default HTML stack-trace page.
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (res.headersSent) return next(err);
+  res.status(500).send('Внутренняя ошибка сервера');
 });
 
 db.init().then(() => {
