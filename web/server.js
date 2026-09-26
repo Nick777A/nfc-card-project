@@ -25,7 +25,7 @@ const db = require('./src/db');
 const { generateSlug, buildVCard, resolveTagPayload } = require('./src/cardPayload');
 const { LANGUAGES, translate, resolveLang } = require('./src/i18n');
 const { detectSocial } = require('./src/socialIcons');
-const { DESIGN_OPTIONS, computeOrderPricing } = require('./src/pricing');
+const { DESIGN_OPTIONS, RU_DESIGN_LABELS, computeOrderPricing } = require('./src/pricing');
 
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -356,17 +356,17 @@ app.post('/order', loginLimiter, upload.single('designImage'), async (req, res) 
   const password = body.password || '';
   const pricing = computeOrderPricing(body.quantity, body.design);
 
-  if (!contactName) return render('Укажите имя контактного лица');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Укажите корректный email');
-  if (password.length < 6) return render('Пароль должен быть не короче 6 символов');
-  if (password !== body.confirmPassword) return render('Пароли не совпадают');
+  if (!contactName) return render('Please enter a contact name');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Please enter a valid email address');
+  if (password.length < 6) return render('Password must be at least 6 characters');
+  if (password !== body.confirmPassword) return render('Passwords do not match');
   if (pricing.design !== 'classic' && !req.file) {
-    return render('Для этого варианта дизайна нужно загрузить картинку/логотип');
+    return render('Please upload an image/logo for this design option');
   }
 
   const existing = db.getCustomerByEmail(email);
   if (existing) {
-    return render('Аккаунт с таким email уже существует — войдите в личный кабинет, чтобы оформить новый заказ');
+    return render('An account with this email already exists — log in to your account to place a new order');
   }
 
   let designImageUrl = '';
@@ -374,7 +374,7 @@ app.post('/order', loginLimiter, upload.single('designImage'), async (req, res) 
     designImageUrl = (await resolveUploadedUrl(req.file)) || '';
   } catch (e) {
     console.error('Upload failed:', e.message);
-    return render('Не удалось загрузить картинку, попробуйте ещё раз');
+    return render('Could not upload the image, please try again');
   }
 
   const customer = {
@@ -417,7 +417,7 @@ app.post('/order', loginLimiter, upload.single('designImage'), async (req, res) 
 
 app.get('/order/:id/confirmation', requireCustomerAuth, (req, res) => {
   const order = db.getOrderById(req.params.id);
-  if (!order || order.customerId !== req.customerId) return res.status(404).send('Заказ не найден');
+  if (!order || order.customerId !== req.customerId) return res.status(404).send('Order not found');
   res.render('order-confirmation', { order, designOptions: DESIGN_OPTIONS });
 });
 
@@ -432,7 +432,7 @@ app.post('/customer/login', loginLimiter, loginSlowDown, (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const customer = db.getCustomerByEmail(email);
   const ok = customer && bcrypt.compareSync(req.body.password || '', customer.passwordHash);
-  if (!ok) return res.render('customer-login', { error: 'Неверный email или пароль' });
+  if (!ok) return res.render('customer-login', { error: 'Incorrect email or password' });
 
   res.cookie(CUSTOMER_AUTH_COOKIE, customer.id, {
     signed: true,
@@ -457,20 +457,20 @@ app.get('/my', requireCustomerAuth, (req, res) => {
 
 app.get('/my/cards/:id/edit', requireCustomerAuth, (req, res) => {
   const card = db.getCardById(req.params.id);
-  if (!card || card.customerId !== req.customerId) return res.status(404).send('Карточка не найдена');
+  if (!card || card.customerId !== req.customerId) return res.status(404).send('Card not found');
   res.render('customer-edit-card', { card, error: null });
 });
 
 app.post('/my/cards/:id/edit', requireCustomerAuth, upload.single('photo'), async (req, res) => {
   const card = db.getCardById(req.params.id);
-  if (!card || card.customerId !== req.customerId) return res.status(404).send('Карточка не найдена');
+  if (!card || card.customerId !== req.customerId) return res.status(404).send('Card not found');
 
   let photoUrl = card.photoUrl;
   try {
     photoUrl = (await resolveUploadedUrl(req.file)) || card.photoUrl;
   } catch (e) {
     console.error('Upload failed:', e.message);
-    return res.render('customer-edit-card', { card, error: 'Не удалось загрузить фото, попробуйте ещё раз' });
+    return res.render('customer-edit-card', { card, error: 'Could not upload the photo, please try again' });
   }
 
   const body = req.body;
@@ -511,7 +511,7 @@ app.get('/admin/orders/:id', requireAuth, (req, res) => {
   if (!order) return res.status(404).send('Заказ не найден');
   const customer = db.getCustomerById(order.customerId);
   const cards = order.cardIds.map((id) => db.getCardById(id)).filter(Boolean);
-  res.render('admin-order-detail', { order, customer, cards, designOptions: DESIGN_OPTIONS });
+  res.render('admin-order-detail', { order, customer, cards, designOptions: RU_DESIGN_LABELS });
 });
 
 app.post('/admin/orders/:id/status', requireAuth, (req, res) => {

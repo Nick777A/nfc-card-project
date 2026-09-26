@@ -25,7 +25,7 @@
 
   function syncPreviewName() {
     const name = (selectedValue('kind') === 'organization' ? companyInput.value : contactNameInput.value).trim();
-    previewName.textContent = name || 'Ваше имя';
+    previewName.textContent = name || 'Your name';
   }
 
   designImageInput.addEventListener('change', () => {

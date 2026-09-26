@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <title>Личный кабинет — Digilama</title>
+  <title>My account — Digilama</title>
   <%- include('partials/head-digilama') %>
 </head>
 <body class="digilama">
   <nav class="dl-nav">
     <a class="dl-logo" href="/">digilama</a>
-    <div class="dl-nav-links"><a href="/order">Заказать</a></div>
+    <div class="dl-nav-links"><a href="/order">Order now</a></div>
   </nav>
 
   <div class="dl-container narrow" style="margin-top:40px; padding-bottom:60px;">
     <div class="dl-card">
-      <h1 style="margin-top:0;">Вход в личный кабинет</h1>
+      <h1 style="margin-top:0;">Log in to your account</h1>
       <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
       <form method="post" action="/customer/login">
         <div class="dl-field">
@@ -20,12 +20,12 @@
           <input type="email" id="email" name="email" required autofocus />
         </div>
         <div class="dl-field">
-          <label for="password">Пароль</label>
+          <label for="password">Password</label>
           <input type="password" id="password" name="password" required />
         </div>
-        <button type="submit" class="dl-btn primary block">Войти</button>
+        <button type="submit" class="dl-btn primary block">Log in</button>
       </form>
-      <p class="dl-hint" style="text-align:center; margin-top:16px;">Ещё нет карты? <a href="/order" style="color: var(--teal);">Оформить заказ</a></p>
+      <p class="dl-hint" style="text-align:center; margin-top:16px;">Don't have a card yet? <a href="/order" style="color: var(--teal);">Place an order</a></p>
     </div>
   </div>
 </body>

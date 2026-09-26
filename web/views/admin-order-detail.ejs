@@ -18,7 +18,7 @@
         <% if (order.kind === 'organization') { %><p><strong>Организация:</strong> <%= customer ? (customer.company || '—') : '—' %></p><% } %>
         <p><strong>Тип:</strong> <%= order.kind === 'organization' ? 'Для организации' : 'Для себя' %></p>
         <p><strong>Количество:</strong> <%= order.quantity %></p>
-        <p><strong>Дизайн:</strong> <%= designOptions[order.design].label %></p>
+        <p><strong>Дизайн:</strong> <%= designOptions[order.design] %></p>
         <p><strong>Цена за карту:</strong> <%= order.pricePerCard.toFixed(2) %>€</p>
         <p><strong>Итого:</strong> <%= order.totalPriceEur.toFixed(2) %>€</p>
         <% if (order.designImageUrl) { %>

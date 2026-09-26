@@ -1,36 +1,36 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <title>Личный кабинет — Digilama</title>
+  <title>My account — Digilama</title>
   <%- include('partials/head-digilama') %>
 </head>
 <body class="digilama">
   <nav class="dl-nav">
     <a class="dl-logo" href="/">digilama</a>
     <div class="dl-nav-links">
-      <a href="/order">Новый заказ</a>
+      <a href="/order">New order</a>
       <form method="post" action="/customer/logout" style="margin:0;">
-        <button type="submit" style="background:none; border:none; color:var(--muted); font:inherit; cursor:pointer; font-weight:600;">Выйти</button>
+        <button type="submit" style="background:none; border:none; color:var(--muted); font:inherit; cursor:pointer; font-weight:600;">Log out</button>
       </form>
     </div>
   </nav>
 
   <div class="dl-container" style="padding-bottom:60px;">
-    <h1>Мои карты</h1>
+    <h1>My cards</h1>
     <% if (cards.length === 0) { %>
       <div class="dl-card">
-        <p style="margin:0;">Пока нет готовых карт — как только мы обработаем ваш заказ, карта появится здесь, и вы сможете редактировать данные на ней.</p>
+        <p style="margin:0;">No cards yet — once we process your order, your card will appear here and you'll be able to edit its details.</p>
       </div>
     <% } else { %>
       <div class="dl-card" style="padding:0; overflow-x:auto;">
         <table class="dl-table">
-          <thead><tr><th>Имя</th><th>Ссылка</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Link</th><th></th></tr></thead>
           <tbody>
             <% cards.forEach(function(card) { %>
               <tr>
                 <td><%= card.fullName || card.label %></td>
                 <td><a href="<%= base %>/u/<%= card.slug %>" target="_blank" style="color:var(--teal);"><%= base.replace(/^https?:\/\//,'') %>/u/<%= card.slug %></a></td>
-                <td><a href="/my/cards/<%= card.id %>/edit" class="dl-btn secondary" style="padding:8px 16px; font-size:13px;">Редактировать</a></td>
+                <td><a href="/my/cards/<%= card.id %>/edit" class="dl-btn secondary" style="padding:8px 16px; font-size:13px;">Edit</a></td>
               </tr>
             <% }) %>
           </tbody>
@@ -38,18 +38,18 @@
       </div>
     <% } %>
 
-    <h1 style="margin-top:40px;">Мои заказы</h1>
+    <h1 style="margin-top:40px;">My orders</h1>
     <% if (orders.length === 0) { %>
-      <div class="dl-card"><p style="margin:0;">Заказов пока нет.</p></div>
+      <div class="dl-card"><p style="margin:0;">No orders yet.</p></div>
     <% } else { %>
       <div class="dl-card" style="padding:0; overflow-x:auto;">
         <table class="dl-table">
-          <thead><tr><th>Дата</th><th>Тип</th><th>Кол-во</th><th>Дизайн</th><th>Итого</th><th>Статус</th></tr></thead>
+          <thead><tr><th>Date</th><th>Type</th><th>Qty</th><th>Design</th><th>Total</th><th>Status</th></tr></thead>
           <tbody>
             <% orders.forEach(function(order) { %>
               <tr>
-                <td><%= new Date(order.createdAt).toLocaleDateString('ru-RU') %></td>
-                <td><%= order.kind === 'organization' ? 'Организация' : 'Для себя' %></td>
+                <td><%= new Date(order.createdAt).toLocaleDateString('en-GB') %></td>
+                <td><%= order.kind === 'organization' ? 'Organization' : 'For myself' %></td>
                 <td><%= order.quantity %></td>
                 <td><%= designOptions[order.design].label %></td>
                 <td><%= order.totalPriceEur.toFixed(2) %>€</td>

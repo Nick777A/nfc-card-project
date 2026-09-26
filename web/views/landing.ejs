@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <title>Digilama — умные NFC-визитки</title>
-  <meta name="description" content="Digilama — физические NFC-карты для вас или вашей команды. Один тап телефоном — и все контакты, ссылки и соцсети сразу под рукой." />
+  <title>Digilama — smart NFC business cards</title>
+  <meta name="description" content="Digilama — physical NFC cards for you or your team. One tap with a phone, and all your contacts, links and socials are right there." />
   <%- include('partials/head-digilama') %>
 </head>
 <body class="digilama">
   <nav class="dl-nav">
     <a class="dl-logo" href="/">digilama</a>
     <div class="dl-nav-links">
-      <a href="/customer/login">Личный кабинет</a>
-      <a href="/order" class="dl-btn primary" style="padding:9px 20px; font-size:14px;">Заказать</a>
+      <a href="/customer/login">My account</a>
+      <a href="/order" class="dl-btn primary" style="padding:9px 20px; font-size:14px;">Order now</a>
     </div>
   </nav>
 
@@ -23,7 +23,7 @@
               <div class="dl-notification-icon">D</div>
               <div class="dl-notification-text">
                 <strong>digilama</strong>
-                <span>Иван Петров · открыть визитку</span>
+                <span>John Doe · open card</span>
               </div>
             </div>
           </div>
@@ -39,31 +39,31 @@
           </svg>
         </div>
       </div>
-      <h1>Ваша визитка.<br/><span class="grad">Один тап телефоном.</span></h1>
-      <p>Физическая NFC-карта с вашими контактами, ссылками и соцсетями. Поднесли к телефону — и всё открылось. Без приложений, без дополнительной цены за обновление данных.</p>
-      <a href="/order" class="dl-btn primary">Заказать карту →</a>
+      <h1>Your business card.<br/><span class="grad">One tap of a phone.</span></h1>
+      <p>A physical NFC card with your contacts, links and socials. Tap it against a phone — and it all opens up. No apps, no extra cost to update your info later.</p>
+      <a href="/order" class="dl-btn primary">Order a card →</a>
     </div>
   </section>
 
   <section class="dl-section">
     <div class="dl-container">
-      <h2>Как это работает</h2>
-      <p class="dl-subtitle">От заказа до карты в руках — три шага</p>
+      <h2>How it works</h2>
+      <p class="dl-subtitle">From order to card in hand — three steps</p>
       <div class="dl-steps">
         <div class="dl-step dl-reveal">
           <div class="dl-step-num">1</div>
-          <h3>Оформляете заказ</h3>
-          <p>Выбираете — для себя или для команды, количество карт и дизайн. Оставляете контакты.</p>
+          <h3>Place an order</h3>
+          <p>Choose for yourself or for a team, pick a quantity and a design. Leave your contact details.</p>
         </div>
         <div class="dl-step dl-reveal">
           <div class="dl-step-num">2</div>
-          <h3>Мы связываемся с вами</h3>
-          <p>Уточняем детали и оплату, готовим карты с вашими данными и дизайном.</p>
+          <h3>We reach out to you</h3>
+          <p>We confirm the details and payment, then prepare your cards with your data and design.</p>
         </div>
         <div class="dl-step dl-reveal">
           <div class="dl-step-num">3</div>
-          <h3>Редактируете в любой момент</h3>
-          <p>В личном кабинете можно в любой момент поменять имя, телефон, ссылки — карту перевыпускать не нужно.</p>
+          <h3>Edit anytime</h3>
+          <p>In your account you can update your name, phone or links whenever you like — no need to reissue the card.</p>
         </div>
       </div>
     </div>
@@ -71,41 +71,41 @@
 
   <section class="dl-section">
     <div class="dl-container">
-      <h2>Цены</h2>
-      <p class="dl-subtitle">Чем больше карт — тем дешевле каждая</p>
+      <h2>Pricing</h2>
+      <p class="dl-subtitle">The more cards, the cheaper each one gets</p>
       <div class="dl-pricing">
         <% tiers.forEach(function(tier, i) { %>
           <div class="dl-price-card dl-reveal <%= i === 1 ? 'featured' : '' %>">
-            <% if (i === 1) { %><div class="dl-badge">Популярно</div><% } %>
-            <div class="dl-qty"><%= tier.qty %> карт</div>
-            <div class="dl-price"><%= tier.pricePerCard.toFixed(2) %>€<small> / карта</small></div>
-            <div class="dl-per">Для организаций и команд</div>
+            <% if (i === 1) { %><div class="dl-badge">Popular</div><% } %>
+            <div class="dl-qty"><%= tier.qty %> cards</div>
+            <div class="dl-price"><%= tier.pricePerCard.toFixed(2) %>€<small> / card</small></div>
+            <div class="dl-per">For organizations and teams</div>
           </div>
         <% }) %>
       </div>
-      <p class="dl-hint" style="text-align:center; margin-top:20px;">Для одного человека — от 19.90€ за карту. Точная цена считается на странице заказа.</p>
+      <p class="dl-hint" style="text-align:center; margin-top:20px;">For a single person — from 19.90€ per card. The exact price is calculated on the order page.</p>
     </div>
   </section>
 
   <section class="dl-section">
     <div class="dl-container">
-      <h2>Дизайн</h2>
-      <p class="dl-subtitle">Три варианта оформления карты</p>
+      <h2>Design</h2>
+      <p class="dl-subtitle">Three ways to style your card</p>
       <div class="dl-options">
         <div class="dl-option-card dl-reveal">
-          <h3>Классическая белая</h3>
-          <div class="dl-option-price">Включено</div>
-          <p>Минималистичная белая NFC-карта без дополнительной печати.</p>
+          <h3>Classic white</h3>
+          <div class="dl-option-price">Included</div>
+          <p>A minimalist white NFC card with no extra printing.</p>
         </div>
         <div class="dl-option-card dl-reveal">
-          <h3>Ваш логотип на карте</h3>
-          <div class="dl-option-price">+3€ за карту</div>
-          <p>Печатаем имя и логотип прямо на карте — выглядит как настоящая фирменная визитка.</p>
+          <h3>Your logo on the card</h3>
+          <div class="dl-option-price">+3€ per card</div>
+          <p>We print your name and logo right on the card — looks like a real branded business card.</p>
         </div>
         <div class="dl-option-card dl-reveal">
-          <h3>Стикер с логотипом</h3>
-          <div class="dl-option-price">+1€ за карту</div>
-          <p>Наклейка с логотипом и нужными изображениями поверх стандартной карты.</p>
+          <h3>Logo sticker</h3>
+          <div class="dl-option-price">+1€ per card</div>
+          <p>A sticker with your logo and images on top of the standard card.</p>
         </div>
       </div>
     </div>
@@ -113,14 +113,14 @@
 
   <section class="dl-cta">
     <div class="dl-container narrow">
-      <h2 style="margin-bottom:16px;">Готовы попробовать?</h2>
-      <a href="/order" class="dl-btn primary">Оформить заказ</a>
+      <h2 style="margin-bottom:16px;">Ready to try it?</h2>
+      <a href="/order" class="dl-btn primary">Place an order</a>
     </div>
   </section>
 
   <footer class="dl-footer">
     <div class="dl-container">
-      digilama — digital + lama · <a href="/customer/login">Личный кабинет</a> · <a href="/privacy">Политика конфиденциальности</a>
+      digilama — digital + lama · <a href="/customer/login">My account</a> · <a href="/privacy">Privacy Policy</a>
     </div>
   </footer>
 

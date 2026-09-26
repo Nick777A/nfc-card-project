@@ -6,9 +6,16 @@ const VOLUME_TIERS = [
 ];
 
 const DESIGN_OPTIONS = {
-  classic: { label: 'Классическая белая карта', pricePerCard: 0 },
-  'logo-print': { label: 'Ваш логотип на карте (печать)', pricePerCard: 3 },
-  sticker: { label: 'Стикер с логотипом и изображениями', pricePerCard: 1 }
+  classic: { label: 'Classic white card', pricePerCard: 0 },
+  'logo-print': { label: 'Your logo printed on the card', pricePerCard: 3 },
+  sticker: { label: 'Sticker with logo & images', pricePerCard: 1 }
+};
+
+// Russian labels for the same design keys, used only on the admin (Russian-language) side.
+const RU_DESIGN_LABELS = {
+  classic: 'Классическая белая карта',
+  'logo-print': 'Ваш логотип на карте (печать)',
+  sticker: 'Стикер с логотипом и изображениями'
 };
 
 function basePricePerCard(quantity) {
@@ -30,4 +37,4 @@ function computeOrderPricing(rawQuantity, designKey) {
   return { quantity, design, basePricePerCard: base, addonPricePerCard: addon, pricePerCard, total };
 }
 
-module.exports = { VOLUME_TIERS, DESIGN_OPTIONS, computeOrderPricing };
+module.exports = { VOLUME_TIERS, DESIGN_OPTIONS, RU_DESIGN_LABELS, computeOrderPricing };
