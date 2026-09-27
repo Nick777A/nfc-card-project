@@ -1003,7 +1003,8 @@ app.post('/admin/2fa/disable', requireAuth, (req, res) => {
 });
 
 app.get('/privacy', (req, res) => {
-  res.render('privacy');
+  const lang = resolveLang(req, res);
+  res.render('privacy', { lang, t: (key) => translate(lang, key) });
 });
 
 // ---------- Forgot password: reset via the one-time recovery code ----------
