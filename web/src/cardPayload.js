@@ -21,7 +21,8 @@ function buildVCard(card) {
   if (card.email) lines.push(`EMAIL:${escapeVCard(card.email)}`);
   if (card.website) lines.push(`URL:${escapeVCard(card.website)}`);
   (card.links || [])
-    .map((l) => l.trim())
+    .map((l) => (typeof l === 'string' ? l : l.url))
+    .map((l) => (l || '').trim())
     .filter(Boolean)
     .forEach((link) => lines.push(`URL:${escapeVCard(link)}`));
   lines.push('END:VCARD');

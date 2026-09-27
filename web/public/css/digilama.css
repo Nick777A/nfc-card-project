@@ -428,6 +428,14 @@ body.digilama {
   font-size: 14px;
 }
 .dl-hint { color: var(--faint); font-size: 13px; margin-top: 6px; }
+.dl-hint code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  background: var(--input-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.92em;
+  color: var(--teal);
+}
 
 .dl-checkbox {
   display: flex;

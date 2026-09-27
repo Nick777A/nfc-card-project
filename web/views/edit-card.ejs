@@ -75,8 +75,8 @@
           </div>
           <div class="field">
             <label for="links">Ссылки — соцсети, мессенджеры, прочее (по одной на строку)</label>
-            <textarea id="links" name="links"><%= (card.links || []).join('\n') %></textarea>
-            <p class="hint">Instagram/Facebook/TikTok/YouTube/LinkedIn/GitHub попадут в «Соцсети», WhatsApp/Telegram/Viber/Signal — в «Мессенджеры», остальные ссылки — во вкладку «Ссылки».</p>
+            <textarea id="links" name="links"><%= (card.links || []).map(function(l) { return typeof l === 'string' ? l : (l.label ? l.label + ' | ' + l.url : l.url); }).join('\n') %></textarea>
+            <p class="hint">Инстаграм, Facebook, TikTok, YouTube, LinkedIn, Pinterest, Reddit, Discord и десятки других соцсетей автоматически попадут в «Соцсети»; WhatsApp/Telegram/Viber/Signal/Skype — в «Мессенджеры». Остальные ссылки попадут во вкладку «Ссылки» — для них можно задать своё описание вместо голого адреса: <code>Моё портфолио | https://example.com</code>.</p>
           </div>
           <div class="field">
             <label for="gallery">Галерея фото (до 6 штук)</label>

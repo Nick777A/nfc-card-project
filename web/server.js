@@ -204,6 +204,44 @@ function normalizeExternalUrl(url) {
 }
 
 /**
+ * Parses the "links" textarea into { label, url } pairs. Each line is either
+ * a bare URL, or "Description | url" so a customer can caption a link (e.g.
+ * a "Links" tab entry) instead of just showing the raw address.
+ */
+function parseLinksInput(text) {
+  return (text || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const pipeIndex = line.indexOf('|');
+      if (pipeIndex === -1) return { label: '', url: normalizeExternalUrl(line) };
+      const label = line.slice(0, pipeIndex).trim();
+      const url = normalizeExternalUrl(line.slice(pipeIndex + 1).trim());
+      return { label, url };
+    })
+    .filter((l) => l.url);
+}
+
+/** The reverse of parseLinksInput, for pre-filling an edit form's textarea. */
+function formatLinksForInput(links) {
+  return (links || [])
+    .map((l) => {
+      if (typeof l === 'string') return l;
+      return l.label ? `${l.label} | ${l.url}` : l.url;
+    })
+    .join('\n');
+}
+
+/** card.links may still be plain URL strings on cards saved before labels existed. */
+function linkUrl(l) {
+  return typeof l === 'string' ? l : l.url;
+}
+function linkLabel(l) {
+  return typeof l === 'string' ? '' : l.label || '';
+}
+
+/**
  * Shared by create and edit: pulls all type-specific content fields out of a
  * form submission. `files` is req.files from the multi-field upload
  * middleware (image for "image"-type cards, photo for a profile's picture);
@@ -237,7 +275,7 @@ async function cardFieldsFromBody(body, files, existing = {}) {
     website: normalizeExternalUrl(body.website || ''),
     company: body.company || '',
     jobTitle: body.jobTitle || '',
-    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
+    links: parseLinksInput(body.links),
     // url / image
     targetUrl: normalizeExternalUrl(body.targetUrl),
     imageUrl: uploadedImageUrl || normalizeExternalUrl(body.imageUrl) || existing.imageUrl || '',
@@ -523,7 +561,7 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
     jobTitle: body.jobTitle || '',
     address: body.address || '',
     scheduleText: body.scheduleText || '',
-    links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
+    links: parseLinksInput(body.links),
     photoUrl: photoUrl || card.photoUrl,
     bannerUrl: bannerUrl || card.bannerUrl,
     galleryUrls: galleryUrls || card.galleryUrls || [],
@@ -1024,7 +1062,12 @@ app.get('/u/:slug', async (req, res) => {
       const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
       // 2x the CSS display size (132px) so the code stays crisp on retina screens.
       const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 264 });
-      const allLinks = (card.links || []).map((url) => ({ url, ...detectSocial(url) }));
+      const allLinks = (card.links || []).map((l) => {
+        const url = linkUrl(l);
+        const customLabel = linkLabel(l);
+        const detected = detectSocial(url);
+        return { url, ...detected, label: customLabel || detected.label };
+      });
       const socialLinks = allLinks.filter((l) => l.category === 'social');
       const messengerLinks = allLinks.filter((l) => l.category === 'messenger');
       const genericLinks = allLinks.filter((l) => !l.category);

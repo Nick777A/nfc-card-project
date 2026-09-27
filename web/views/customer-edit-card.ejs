@@ -58,8 +58,8 @@
         </div>
         <div class="dl-field">
           <label for="links">Links — socials, messengers, anything else (one per line)</label>
-          <textarea id="links" name="links"><%= (card.links || []).join('\n') %></textarea>
-          <p class="dl-hint">Instagram/Facebook/TikTok/YouTube/LinkedIn/GitHub go under "Socials", WhatsApp/Telegram/Viber/Signal under "Messengers" — everything else lands in the "Links" tab.</p>
+          <textarea id="links" name="links"><%= (card.links || []).map(function(l) { return typeof l === 'string' ? l : (l.label ? l.label + ' | ' + l.url : l.url); }).join('\n') %></textarea>
+          <p class="dl-hint">Instagram, Facebook, TikTok, YouTube, LinkedIn, Pinterest, Reddit, Discord and dozens more socials are auto-detected under "Socials"; WhatsApp/Telegram/Viber/Signal/Skype under "Messengers". Anything else lands in the "Links" tab — give it your own description instead of the raw address: <code>My portfolio | https://example.com</code>.</p>
         </div>
         <div class="dl-field">
           <label for="gallery">Photo gallery (up to 6)</label>

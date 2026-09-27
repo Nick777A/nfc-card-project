@@ -37,8 +37,11 @@
           <div class="dl-tap-badge" style="margin-top:4px;"><span class="dot"></span> <%= t('connectedBadge') %></div>
         <% } %>
         <p class="dl-profile-name dl-profile-item" style="--d:2"><%= card.fullName %></p>
-        <% if (card.tagline || card.jobTitle || card.company) { %>
-          <p class="dl-profile-sub dl-profile-item" style="--d:3"><%= card.tagline || [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
+        <% if (card.jobTitle || card.company) { %>
+          <p class="dl-profile-sub dl-profile-item" style="--d:3; margin-bottom:2px;"><%= [card.jobTitle, card.company].filter(Boolean).join(' · ') %></p>
+        <% } %>
+        <% if (card.tagline) { %>
+          <p class="dl-profile-sub dl-profile-item" style="--d:3"><%= card.tagline %></p>
         <% } %>
 
         <% if (card.phone || card.email || card.website) { %>
@@ -111,7 +114,7 @@
               <% genericLinks.forEach(function(link) { %>
                 <a class="dl-link-row" href="<%= link.url %>" target="_blank" rel="noopener">
                   <%- link.svg %>
-                  <span><%= link.url.replace(/^https?:\/\//, '') %></span>
+                  <span><%= link.label || link.url.replace(/^https?:\/\//, '') %></span>
                 </a>
               <% }) %>
             </div>
