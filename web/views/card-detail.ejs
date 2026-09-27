@@ -67,10 +67,15 @@
       <table class="cards-table">
         <% if (card.type === 'profile') { %>
           <tr><th>Имя</th><td><%= card.fullName %></td></tr>
+          <% if (card.tagline) { %><tr><th>Подзаголовок</th><td><%= card.tagline %></td></tr><% } %>
           <tr><th>Телефон</th><td><%= card.phone %></td></tr>
           <tr><th>Email</th><td><%= card.email %></td></tr>
+          <% if (card.website) { %><tr><th>Сайт</th><td><%= card.website %></td></tr><% } %>
           <tr><th>Компания</th><td><%= card.company %></td></tr>
           <tr><th>Должность</th><td><%= card.jobTitle %></td></tr>
+          <% if (card.address) { %><tr><th>Адрес</th><td><%= card.address %></td></tr><% } %>
+          <% if (card.scheduleText) { %><tr><th>Часы работы</th><td style="white-space:pre-wrap;"><%= card.scheduleText %></td></tr><% } %>
+          <% if (card.galleryUrls && card.galleryUrls.length) { %><tr><th>Галерея</th><td><%= card.galleryUrls.length %> фото</td></tr><% } %>
         <% } else if (card.type === 'url') { %>
           <tr><th>Целевой адрес</th><td><a href="<%= card.targetUrl %>" target="_blank"><%= card.targetUrl %></a></td></tr>
         <% } else if (card.type === 'image') { %>

@@ -19,6 +19,7 @@ function buildVCard(card) {
   if (card.jobTitle) lines.push(`TITLE:${escapeVCard(card.jobTitle)}`);
   if (card.phone) lines.push(`TEL;TYPE=CELL:${escapeVCard(card.phone)}`);
   if (card.email) lines.push(`EMAIL:${escapeVCard(card.email)}`);
+  if (card.website) lines.push(`URL:${escapeVCard(card.website)}`);
   (card.links || [])
     .map((l) => l.trim())
     .filter(Boolean)

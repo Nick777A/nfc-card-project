@@ -16,11 +16,20 @@
       <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
       <form method="post" action="/my/cards/<%= card.id %>/edit" enctype="multipart/form-data">
         <div class="dl-field">
-          <label for="fullName">Full name</label>
+          <label for="fullName">Full name / company name</label>
           <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
         </div>
         <div class="dl-field">
-          <label for="photo">Profile photo</label>
+          <label for="tagline">Tagline</label>
+          <input type="text" id="tagline" name="tagline" placeholder="e.g. Digital business cards" value="<%= card.tagline || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="banner">Cover banner</label>
+          <input type="file" id="banner" name="banner" accept="image/*" />
+          <% if (card.bannerUrl) { %><p class="dl-hint">Current banner is set — upload a new one to replace it.</p><% } %>
+        </div>
+        <div class="dl-field">
+          <label for="photo">Profile photo / logo</label>
           <input type="file" id="photo" name="photo" accept="image/*" />
         </div>
         <div class="dl-row">
@@ -33,6 +42,10 @@
             <input type="email" id="email" name="email" value="<%= card.email || '' %>" />
           </div>
         </div>
+        <div class="dl-field">
+          <label for="website">Website</label>
+          <input type="text" id="website" name="website" placeholder="https://..." value="<%= card.website || '' %>" />
+        </div>
         <div class="dl-row">
           <div class="dl-field">
             <label for="company">Company</label>
@@ -44,8 +57,22 @@
           </div>
         </div>
         <div class="dl-field">
-          <label for="links">Links (one per line)</label>
+          <label for="links">Links — socials, messengers, anything else (one per line)</label>
           <textarea id="links" name="links"><%= (card.links || []).join('\n') %></textarea>
+          <p class="dl-hint">Instagram/Facebook/TikTok/YouTube/LinkedIn/GitHub go under "Socials", WhatsApp/Telegram/Viber/Signal under "Messengers" — everything else lands in the "Links" tab.</p>
+        </div>
+        <div class="dl-field">
+          <label for="gallery">Photo gallery (up to 6)</label>
+          <input type="file" id="gallery" name="gallery" accept="image/*" multiple />
+          <% if (card.galleryUrls && card.galleryUrls.length) { %><p class="dl-hint"><%= card.galleryUrls.length %> photo(s) uploaded — uploading new ones replaces the whole gallery.</p><% } %>
+        </div>
+        <div class="dl-field">
+          <label for="scheduleText">Opening hours</label>
+          <textarea id="scheduleText" name="scheduleText" placeholder="Mon–Fri: 9:00–18:00&#10;Sat: 10:00–14:00&#10;Sun: closed"><%= card.scheduleText || '' %></textarea>
+        </div>
+        <div class="dl-field">
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address" value="<%= card.address || '' %>" />
         </div>
         <button type="submit" class="dl-btn primary block">Save</button>
       </form>

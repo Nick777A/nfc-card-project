@@ -45,11 +45,19 @@
         <!-- Profile fields -->
         <div class="type-section" data-type="profile">
           <div class="field">
-            <label for="fullName">Имя и фамилия</label>
+            <label for="fullName">Имя и фамилия (или название компании)</label>
             <input type="text" id="fullName" name="fullName" value="<%= values.fullName || '' %>" />
           </div>
           <div class="field">
-            <label for="photo">Фото профиля (необязательно)</label>
+            <label for="tagline">Подзаголовок (необязательно)</label>
+            <input type="text" id="tagline" name="tagline" placeholder="Например: Digital business cards" value="<%= values.tagline || '' %>" />
+          </div>
+          <div class="field">
+            <label for="banner">Баннер (обложка сверху, необязательно)</label>
+            <input type="file" id="banner" name="banner" accept="image/*" />
+          </div>
+          <div class="field">
+            <label for="photo">Фото профиля / лого (необязательно)</label>
             <input type="file" id="photo" name="photo" accept="image/*" />
             <p class="hint">Если не загрузить — вместо фото будет показан круг с первой буквой имени.</p>
           </div>
@@ -62,6 +70,10 @@
             <input type="email" id="email" name="email" value="<%= values.email || '' %>" />
           </div>
           <div class="field">
+            <label for="website">Сайт</label>
+            <input type="text" id="website" name="website" placeholder="https://..." value="<%= values.website || '' %>" />
+          </div>
+          <div class="field">
             <label for="company">Компания</label>
             <input type="text" id="company" name="company" value="<%= values.company || '' %>" />
           </div>
@@ -70,8 +82,21 @@
             <input type="text" id="jobTitle" name="jobTitle" value="<%= values.jobTitle || '' %>" />
           </div>
           <div class="field">
-            <label for="links">Ссылки (по одной на строку)</label>
-            <textarea id="links" name="links"><%= values.links || '' %></textarea>
+            <label for="links">Ссылки — соцсети, мессенджеры, прочее (по одной на строку)</label>
+            <textarea id="links" name="links" placeholder="https://instagram.com/...&#10;https://wa.me/...&#10;https://your-other-link.com"><%= values.links || '' %></textarea>
+            <p class="hint">Instagram/Facebook/TikTok/YouTube/LinkedIn/GitHub попадут в «Соцсети», WhatsApp/Telegram/Viber/Signal — в «Мессенджеры», остальные ссылки — во вкладку «Ссылки».</p>
+          </div>
+          <div class="field">
+            <label for="gallery">Галерея фото (до 6 штук, необязательно)</label>
+            <input type="file" id="gallery" name="gallery" accept="image/*" multiple />
+          </div>
+          <div class="field">
+            <label for="scheduleText">Часы работы (необязательно)</label>
+            <textarea id="scheduleText" name="scheduleText" placeholder="Пн–Пт: 9:00–18:00&#10;Сб: 10:00–14:00&#10;Вс: выходной"><%= values.scheduleText || '' %></textarea>
+          </div>
+          <div class="field">
+            <label for="address">Адрес (необязательно)</label>
+            <input type="text" id="address" name="address" placeholder="Город, улица, дом" value="<%= values.address || '' %>" />
           </div>
         </div>
 

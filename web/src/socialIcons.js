@@ -14,31 +14,36 @@ const ICONS = {
   whatsapp: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3.5a8.4 8.4 0 0 0-7.2 12.7L3.5 20.5l4.4-1.2A8.4 8.4 0 1 0 12 3.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M8.7 8.6c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .5.4.2.4.6 1.4.7 1.5.1.1.1.3 0 .4-.1.2-.2.3-.3.5-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2 1.1.9 1.9 1.2 2.2 1.3.3.1.5.1.6-.1.2-.2.7-.8.9-1.1.2-.3.4-.2.6-.1.2.1 1.5.7 1.7.8.2.1.4.2.4.3 0 .2 0 .9-.3 1.3-.4.5-1.3.9-1.8.9-.5 0-1.1 0-3.3-1.4-2.7-1.7-3.5-3.6-3.6-3.8-.1-.2-.9-1.3-.9-2.5 0-1.2.6-1.8.8-2Z" fill="currentColor"/></svg>',
   telegram: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 12.3 16.8 8l-1.7 8.8c-.1.5-.5.6-.9.4l-2.5-1.9-1.2 1.2c-.1.1-.3.2-.4.2l.2-2.6 4.9-4.5c.2-.2 0-.3-.2-.1l-6 3.8-2.6-.8c-.6-.2-.6-.6.1-.9Z" fill="currentColor"/></svg>',
   github: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5a9.5 9.5 0 0 0-3 18.5c.5.1.6-.2.6-.4v-1.7c-2.6.6-3.2-1.1-3.2-1.1-.4-1-1-1.3-1-1.3-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2-.2-4.2-1-4.2-4.5 0-1 .3-1.8.9-2.5-.1-.2-.4-1.2.1-2.5 0 0 .8-.3 2.6 1a9 9 0 0 1 4.8 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.5.6.7.9 1.5.9 2.5 0 3.5-2.2 4.3-4.2 4.5.3.3.6.8.6 1.7v2.4c0 .2.1.5.6.4A9.5 9.5 0 0 0 12 2.5Z" fill="currentColor"/></svg>',
+  viber: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3.5c4.4 0 7.5 2.7 7.5 7.2 0 4-2.6 6.7-6.5 7.1-.9.1-1.7.4-2.4 1l-2.1 1.8a.5.5 0 0 1-.8-.4v-2.2c-2.4-1-3.9-3.3-3.9-6.5 0-4.6 3.5-8 8.2-8Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 9.3c-.1 3 2.3 5.5 5.4 5.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14.7 12.9c-.3-.2-.9-.6-1.2-.4-.3.1-.5.5-.7.7-.1.1-.3.2-.5.1-.7-.3-1.5-.9-1.9-1.7 0-.2 0-.4.1-.5.2-.2.5-.4.5-.7.1-.3-.4-1-.6-1.3-.2-.2-.4-.2-.6-.1-.5.2-.8.7-.8 1.2 0 1.4 1.6 3.6 3 4.1.5.2 1.1.1 1.4-.3.2-.3.5-.6.4-1z" fill="currentColor"/></svg>',
+  signal: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3.5a8.4 8.4 0 0 0-7.2 12.7L3.5 20.5l4.4-1.2A8.4 8.4 0 1 0 12 3.5Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>',
   website: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9.5" stroke="currentColor" stroke-width="1.8"/><path d="M2.5 12h19M12 2.5c2.5 2.7 3.8 6 3.8 9.5s-1.3 6.8-3.8 9.5c-2.5-2.7-3.8-6-3.8-9.5s1.3-6.8 3.8-9.5Z" stroke="currentColor" stroke-width="1.8"/></svg>'
 };
 
 const MATCHERS = [
-  { key: 'instagram', label: 'Instagram', test: (h) => h.includes('instagram.com') },
-  { key: 'facebook', label: 'Facebook', test: (h) => h.includes('facebook.com') || h.includes('fb.com') },
-  { key: 'x', label: 'X (Twitter)', test: (h) => h.includes('twitter.com') || h.includes('x.com') },
-  { key: 'linkedin', label: 'LinkedIn', test: (h) => h.includes('linkedin.com') },
-  { key: 'tiktok', label: 'TikTok', test: (h) => h.includes('tiktok.com') },
-  { key: 'youtube', label: 'YouTube', test: (h) => h.includes('youtube.com') || h.includes('youtu.be') },
-  { key: 'whatsapp', label: 'WhatsApp', test: (h) => h.includes('wa.me') || h.includes('whatsapp.com') },
-  { key: 'telegram', label: 'Telegram', test: (h) => h.includes('t.me') || h.includes('telegram.me') },
-  { key: 'github', label: 'GitHub', test: (h) => h.includes('github.com') }
+  { key: 'instagram', label: 'Instagram', category: 'social', test: (h) => h.includes('instagram.com') },
+  { key: 'facebook', label: 'Facebook', category: 'social', test: (h) => h.includes('facebook.com') || h.includes('fb.com') },
+  { key: 'x', label: 'X (Twitter)', category: 'social', test: (h) => h.includes('twitter.com') || h.includes('x.com') },
+  { key: 'linkedin', label: 'LinkedIn', category: 'social', test: (h) => h.includes('linkedin.com') },
+  { key: 'tiktok', label: 'TikTok', category: 'social', test: (h) => h.includes('tiktok.com') },
+  { key: 'youtube', label: 'YouTube', category: 'social', test: (h) => h.includes('youtube.com') || h.includes('youtu.be') },
+  { key: 'github', label: 'GitHub', category: 'social', test: (h) => h.includes('github.com') },
+  { key: 'whatsapp', label: 'WhatsApp', category: 'messenger', test: (h) => h.includes('wa.me') || h.includes('whatsapp.com') },
+  { key: 'telegram', label: 'Telegram', category: 'messenger', test: (h) => h.includes('t.me') || h.includes('telegram.me') },
+  { key: 'viber', label: 'Viber', category: 'messenger', test: (h) => h.includes('viber.com') },
+  { key: 'signal', label: 'Signal', category: 'messenger', test: (h) => h.includes('signal.me') || h.includes('signal.org') }
 ];
 
+/** category is 'social', 'messenger', or null for an unrecognized/generic link. */
 function detectSocial(url) {
   let hostname = '';
   try {
     hostname = new URL(url).hostname.toLowerCase();
   } catch {
-    return { key: 'website', label: 'Website', svg: ICONS.website };
+    return { key: 'website', label: 'Website', svg: ICONS.website, category: null };
   }
   const match = MATCHERS.find((m) => m.test(hostname));
-  if (match) return { key: match.key, label: match.label, svg: ICONS[match.key] };
-  return { key: 'website', label: 'Website', svg: ICONS.website };
+  if (match) return { key: match.key, label: match.label, svg: ICONS[match.key], category: match.category };
+  return { key: 'website', label: 'Website', svg: ICONS.website, category: null };
 }
 
 module.exports = { detectSocial };

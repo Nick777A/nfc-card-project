@@ -36,11 +36,20 @@
 
         <div class="type-section" data-type="profile">
           <div class="field">
-            <label for="fullName">Имя и фамилия</label>
+            <label for="fullName">Имя и фамилия (или название компании)</label>
             <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
           </div>
           <div class="field">
-            <label for="photo">Фото профиля</label>
+            <label for="tagline">Подзаголовок</label>
+            <input type="text" id="tagline" name="tagline" value="<%= card.tagline || '' %>" />
+          </div>
+          <div class="field">
+            <label for="banner">Баннер (обложка сверху)</label>
+            <input type="file" id="banner" name="banner" accept="image/*" />
+            <% if (card.bannerUrl) { %><p class="hint">Текущий баннер: <a href="<%= card.bannerUrl %>" target="_blank">открыть</a> — загрузите новый, чтобы заменить.</p><% } %>
+          </div>
+          <div class="field">
+            <label for="photo">Фото профиля / лого</label>
             <input type="file" id="photo" name="photo" accept="image/*" />
             <% if (card.photoUrl) { %><p class="hint">Текущее фото: <a href="<%= card.photoUrl %>" target="_blank">открыть</a> — загрузите новое, чтобы заменить.</p><% } %>
           </div>
@@ -53,6 +62,10 @@
             <input type="email" id="email" name="email" value="<%= card.email || '' %>" />
           </div>
           <div class="field">
+            <label for="website">Сайт</label>
+            <input type="text" id="website" name="website" value="<%= card.website || '' %>" />
+          </div>
+          <div class="field">
             <label for="company">Компания</label>
             <input type="text" id="company" name="company" value="<%= card.company || '' %>" />
           </div>
@@ -61,8 +74,22 @@
             <input type="text" id="jobTitle" name="jobTitle" value="<%= card.jobTitle || '' %>" />
           </div>
           <div class="field">
-            <label for="links">Ссылки (по одной на строку)</label>
+            <label for="links">Ссылки — соцсети, мессенджеры, прочее (по одной на строку)</label>
             <textarea id="links" name="links"><%= (card.links || []).join('\n') %></textarea>
+            <p class="hint">Instagram/Facebook/TikTok/YouTube/LinkedIn/GitHub попадут в «Соцсети», WhatsApp/Telegram/Viber/Signal — в «Мессенджеры», остальные ссылки — во вкладку «Ссылки».</p>
+          </div>
+          <div class="field">
+            <label for="gallery">Галерея фото (до 6 штук)</label>
+            <input type="file" id="gallery" name="gallery" accept="image/*" multiple />
+            <% if (card.galleryUrls && card.galleryUrls.length) { %><p class="hint">Сейчас загружено: <%= card.galleryUrls.length %>. Загрузка новых файлов заменит всю галерею целиком.</p><% } %>
+          </div>
+          <div class="field">
+            <label for="scheduleText">Часы работы</label>
+            <textarea id="scheduleText" name="scheduleText"><%= card.scheduleText || '' %></textarea>
+          </div>
+          <div class="field">
+            <label for="address">Адрес</label>
+            <input type="text" id="address" name="address" value="<%= card.address || '' %>" />
           </div>
         </div>
 

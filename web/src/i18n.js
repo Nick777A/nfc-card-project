@@ -96,6 +96,32 @@ const DICTIONARY = {
     de: 'Dieser Link ist ungültig oder die Karte wurde gelöscht.',
     es: 'Este enlace no es válido o la tarjeta ha sido eliminada.',
     it: 'Questo link non è valido o la scheda è stata eliminata.'
+  },
+  tabLinks: { ru: 'Ссылки', en: 'Links', fr: 'Liens', de: 'Links', es: 'Enlaces', it: 'Link' },
+  tabGallery: { ru: 'Галерея', en: 'Gallery', fr: 'Galerie', de: 'Galerie', es: 'Galería', it: 'Galleria' },
+  tabSchedule: { ru: 'Часы', en: 'Schedule', fr: 'Horaires', de: 'Öffnungszeiten', es: 'Horario', it: 'Orari' },
+  tabAddress: { ru: 'Адрес', en: 'Address', fr: 'Adresse', de: 'Adresse', es: 'Dirección', it: 'Indirizzo' },
+  socialsLabel: { ru: 'Соцсети', en: 'Socials', fr: 'Réseaux sociaux', de: 'Soziale Netzwerke', es: 'Redes sociales', it: 'Social' },
+  messengersLabel: { ru: 'Мессенджеры', en: 'Messengers', fr: 'Messageries', de: 'Messenger', es: 'Mensajería', it: 'Messaggistica' },
+  noLinksYet: {
+    ru: 'Пока нет ссылок.', en: 'No links yet.', fr: 'Pas encore de liens.',
+    de: 'Noch keine Links.', es: 'Todavía no hay enlaces.', it: 'Nessun link ancora.'
+  },
+  noPhotosYet: {
+    ru: 'Пока нет фото.', en: 'No photos yet.', fr: 'Pas encore de photos.',
+    de: 'Noch keine Fotos.', es: 'Todavía no hay fotos.', it: 'Nessuna foto ancora.'
+  },
+  hoursNotProvided: {
+    ru: 'Часы работы не указаны.', en: 'Hours not provided.', fr: "Horaires non renseignés.",
+    de: 'Öffnungszeiten nicht angegeben.', es: 'Horario no indicado.', it: 'Orari non indicati.'
+  },
+  addressNotProvided: {
+    ru: 'Адрес не указан.', en: 'Address not provided.', fr: 'Adresse non renseignée.',
+    de: 'Adresse nicht angegeben.', es: 'Dirección no indicada.', it: 'Indirizzo non indicato.'
+  },
+  openInMaps: {
+    ru: 'Открыть на карте', en: 'Open in Maps', fr: 'Ouvrir dans Maps', de: 'In Karten öffnen',
+    es: 'Abrir en Maps', it: 'Apri in Mappe'
   }
 };
 

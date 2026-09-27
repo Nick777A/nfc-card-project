@@ -136,6 +136,19 @@ function resolveUploadedUrl(file) {
   });
 }
 
+/** Same as resolveUploadedUrl but for a whole multer file array (e.g. a gallery field). */
+function resolveUploadedUrls(files) {
+  if (!files || !files.length) return Promise.resolve(null);
+  return Promise.all(files.map((f) => resolveUploadedUrl(f)));
+}
+
+const uploadCardFiles = upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'photo', maxCount: 1 },
+  { name: 'banner', maxCount: 1 },
+  { name: 'gallery', maxCount: 6 }
+]);
+
 // Small text-file uploads (JSON backups, CSV bulk-import) never need to touch disk.
 const memoryUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
@@ -200,18 +213,28 @@ function normalizeExternalUrl(url) {
 async function cardFieldsFromBody(body, files, existing = {}) {
   const imageFile = files && files.image && files.image[0];
   const photoFile = files && files.photo && files.photo[0];
-  const [uploadedImageUrl, uploadedPhotoUrl] = await Promise.all([
+  const bannerFile = files && files.banner && files.banner[0];
+  const galleryFiles = files && files.gallery;
+  const [uploadedImageUrl, uploadedPhotoUrl, uploadedBannerUrl, uploadedGalleryUrls] = await Promise.all([
     resolveUploadedUrl(imageFile),
-    resolveUploadedUrl(photoFile)
+    resolveUploadedUrl(photoFile),
+    resolveUploadedUrl(bannerFile),
+    resolveUploadedUrls(galleryFiles)
   ]);
   return {
     type: body.type,
     label: (body.label || body.fullName || body.targetUrl || body.wifiSsid || 'Карточка').trim(),
     // profile
     fullName: body.fullName || '',
+    tagline: body.tagline || '',
     photoUrl: uploadedPhotoUrl || existing.photoUrl || '',
+    bannerUrl: uploadedBannerUrl || existing.bannerUrl || '',
+    galleryUrls: uploadedGalleryUrls || existing.galleryUrls || [],
+    scheduleText: body.scheduleText || '',
+    address: body.address || '',
     phone: body.phone || '',
     email: body.email || '',
+    website: normalizeExternalUrl(body.website || ''),
     company: body.company || '',
     jobTitle: body.jobTitle || '',
     links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
@@ -469,27 +492,41 @@ app.get('/my/cards/:id/edit', requireCustomerAuth, (req, res) => {
   res.render('customer-edit-card', { card, error: null });
 });
 
-app.post('/my/cards/:id/edit', requireCustomerAuth, upload.single('photo'), async (req, res) => {
+app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req, res) => {
   const card = db.getCardById(req.params.id);
   if (!card || card.customerId !== req.customerId) return res.status(404).send('Card not found');
 
-  let photoUrl = card.photoUrl;
+  const body = req.body;
+  const photoFile = req.files && req.files.photo && req.files.photo[0];
+  const bannerFile = req.files && req.files.banner && req.files.banner[0];
+  const galleryFiles = req.files && req.files.gallery;
+
+  let photoUrl, bannerUrl, galleryUrls;
   try {
-    photoUrl = (await resolveUploadedUrl(req.file)) || card.photoUrl;
+    [photoUrl, bannerUrl, galleryUrls] = await Promise.all([
+      resolveUploadedUrl(photoFile),
+      resolveUploadedUrl(bannerFile),
+      resolveUploadedUrls(galleryFiles)
+    ]);
   } catch (e) {
     console.error('Upload failed:', e.message);
-    return res.render('customer-edit-card', { card, error: 'Could not upload the photo, please try again' });
+    return res.render('customer-edit-card', { card, error: 'Could not upload the image, please try again' });
   }
 
-  const body = req.body;
   db.updateCard(card.id, {
     fullName: body.fullName || '',
+    tagline: body.tagline || '',
     phone: body.phone || '',
     email: body.email || '',
+    website: normalizeExternalUrl(body.website || ''),
     company: body.company || '',
     jobTitle: body.jobTitle || '',
+    address: body.address || '',
+    scheduleText: body.scheduleText || '',
     links: (body.links || '').split('\n').map((l) => l.trim()).filter(Boolean).map(normalizeExternalUrl),
-    photoUrl,
+    photoUrl: photoUrl || card.photoUrl,
+    bannerUrl: bannerUrl || card.bannerUrl,
+    galleryUrls: galleryUrls || card.galleryUrls || [],
     updatedAt: Date.now()
   });
   res.redirect('/my');
@@ -546,11 +583,6 @@ app.get('/admin/cards/new', requireAuth, (req, res) => {
     : {};
   res.render('new-card', { error: null, values, base: baseUrl(req), orderId: order ? order.id : '' });
 });
-
-const uploadCardFiles = upload.fields([
-  { name: 'image', maxCount: 1 },
-  { name: 'photo', maxCount: 1 }
-]);
 
 app.post('/admin/cards/new', requireAuth, uploadCardFiles, async (req, res) => {
   const body = req.body;
@@ -612,7 +644,12 @@ app.post('/admin/cards/:id/edit', requireAuth, uploadCardFiles, async (req, res)
 
   let updated;
   try {
-    updated = await cardFieldsFromBody(req.body, req.files, { imageUrl: card.imageUrl, photoUrl: card.photoUrl });
+    updated = await cardFieldsFromBody(req.body, req.files, {
+      imageUrl: card.imageUrl,
+      photoUrl: card.photoUrl,
+      bannerUrl: card.bannerUrl,
+      galleryUrls: card.galleryUrls
+    });
   } catch (e) {
     console.error('Upload failed:', e.message);
     return res.render('edit-card', { card, error: 'Не удалось загрузить изображение, попробуйте ещё раз' });
@@ -987,7 +1024,10 @@ app.get('/u/:slug', async (req, res) => {
       const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
       // 2x the CSS display size (132px) so the code stays crisp on retina screens.
       const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 264 });
-      const linksWithIcons = (card.links || []).map((url) => ({ url, ...detectSocial(url) }));
+      const allLinks = (card.links || []).map((url) => ({ url, ...detectSocial(url) }));
+      const socialLinks = allLinks.filter((l) => l.category === 'social');
+      const messengerLinks = allLinks.filter((l) => l.category === 'messenger');
+      const genericLinks = allLinks.filter((l) => !l.category);
       const ogImage = `${baseUrl(req)}/og-image.png`;
       const ogTitle = card.type === 'profile' ? (card.fullName || card.label) : card.label;
       const ogDescription =
@@ -1002,7 +1042,9 @@ app.get('/u/:slug', async (req, res) => {
         t,
         lang,
         languages: LANGUAGES,
-        linksWithIcons,
+        socialLinks,
+        messengerLinks,
+        genericLinks,
         ogImage,
         ogTitle,
         ogDescription,
