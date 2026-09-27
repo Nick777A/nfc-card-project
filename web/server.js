@@ -323,9 +323,12 @@ app.post('/logout', (req, res) => {
 
 // ---------- Digilama: public storefront (landing, order form, customer accounts) ----------
 
+// Always the marketing page, regardless of any leftover admin/customer login
+// cookie in the browser — a signed-in admin or customer can still reach their
+// own area via /admin or /my, but "/" itself never auto-redirects, so it's
+// never a moving target depending on who last logged in on this device.
 app.get('/', (req, res) => {
-  if (isAuthed(req)) return res.redirect('/admin');
-  if (currentCustomerId(req)) return res.redirect('/my');
+  res.set('Cache-Control', 'no-store');
   res.render('landing', { tiers: computeVolumeTiersForDisplay(), designOptions: DESIGN_OPTIONS, base: baseUrl(req) });
 });
 
