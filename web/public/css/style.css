@@ -82,8 +82,11 @@
 
 * { box-sizing: border-box; }
 
+html { overflow-x: hidden; }
+
 body {
   margin: 0;
+  overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   background-image:
@@ -131,7 +134,7 @@ code {
   background-clip: text;
 }
 .admin-nav-links { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.admin-nav-links a { color: var(--text-muted); font-size: 14px; font-weight: 500; }
+.admin-nav-links a, .admin-nav-links .link-button { color: var(--text-muted); font-size: 14px; font-weight: 500; white-space: nowrap; }
 .admin-nav-links a:hover { color: var(--text); text-decoration: none; }
 
 .link-button {
@@ -245,10 +248,12 @@ h2 { font-size: 17px; margin: 0 0 14px; font-weight: 600; letter-spacing: -0.2px
 
 .table-scroll {
   overflow-x: auto;
+  max-width: 100%;
 }
 
 table.cards-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
 }
 table.cards-table th, table.cards-table td {
@@ -257,6 +262,7 @@ table.cards-table th, table.cards-table td {
   border-bottom: 1px solid var(--border);
   word-break: break-word;
   font-size: 14px;
+  white-space: nowrap;
 }
 table.cards-table th {
   color: var(--text-muted);
@@ -330,14 +336,31 @@ table.cards-table tbody tr:last-child td { border-bottom: none; }
   box-shadow: var(--shadow-md);
 }
 
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; min-width: 0; }
+.row > * { min-width: 0; }
+
+.toolbar-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.toolbar-search { flex: 1 1 260px; max-width: 320px; margin-bottom: 0; }
 
 .btn-block { display: flex; width: 100%; }
+
+@media (max-width: 700px) {
+  .admin-nav { flex-direction: column; align-items: flex-start; }
+  .admin-nav-links { width: 100%; gap: 14px 16px; }
+}
 
 @media (max-width: 480px) {
   .container { padding: 20px 16px; }
   .card { padding: 18px; }
   .admin-nav { padding: 14px 18px; }
-  .admin-nav-links { gap: 14px; }
+  .admin-nav-links { gap: 12px 14px; }
   h1 { font-size: 21px; }
+  .toolbar-search { max-width: 100%; flex-basis: 100%; }
 }

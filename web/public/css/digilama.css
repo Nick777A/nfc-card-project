@@ -22,8 +22,11 @@
 
 * { box-sizing: border-box; }
 
+html:has(body.digilama) { overflow-x: hidden; }
+
 body.digilama {
   margin: 0;
+  overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   background-image:
@@ -42,6 +45,8 @@ body.digilama {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 22px 20px;
   max-width: 1080px;
   margin: 0 auto;
@@ -63,7 +68,8 @@ body.digilama {
 /* ---- Hero animated mockup: phone receiving a tap-triggered notification + NFC card ---- */
 .dl-hero-visual {
   position: relative;
-  width: 320px;
+  width: 100%;
+  max-width: 320px;
   height: 340px;
   margin: 10px auto 30px;
 }
@@ -460,7 +466,7 @@ body.digilama {
   background-repeat: no-repeat;
   user-select: none;
 }
-.dl-preview-card.front.draggable { cursor: grab; }
+.dl-preview-card.front.draggable { cursor: grab; touch-action: none; }
 .dl-preview-card.front.draggable.dragging { cursor: grabbing; }
 .dl-preview-card.front.has-bg-image::after {
   content: '';
@@ -526,8 +532,8 @@ body.digilama {
 .dl-preview-qr span { bottom: -5px; left: -5px; }
 .dl-preview-card.back .dl-preview-caption { font-size: 11px; color: #6b6b78; }
 
-table.dl-table { width: 100%; border-collapse: collapse; }
-table.dl-table th, table.dl-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+table.dl-table { width: 100%; min-width: 480px; border-collapse: collapse; }
+table.dl-table th, table.dl-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 14px; white-space: nowrap; }
 table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
 .dl-badge-status {
   display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
@@ -544,6 +550,18 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   .dl-choice-group.cols-3 { grid-template-columns: 1fr; }
   .dl-row { flex-direction: column; }
   .dl-nav-links { gap: 12px; }
+  .dl-hero { padding: 40px 16px 30px; }
+  .dl-section { padding: 36px 16px; }
+  .dl-container { padding: 0 16px; }
+}
+
+@media (max-width: 480px) {
+  .dl-card { padding: 22px 18px; }
+  .dl-hero p { font-size: 16px; }
+  .dl-choice-group { grid-template-columns: 1fr; }
+  .dl-card-preview { justify-content: center; }
+  .dl-nav { padding: 16px; }
+  .dl-logo { font-size: 19px; }
 }
 
 /* ---- Public card page: what opens when someone taps the physical NFC card ---- */
