@@ -744,7 +744,7 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   color: var(--muted);
   max-width: 100%;
 }
-.dl-contact-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+.dl-contact-item span { white-space: nowrap; }
 .dl-contact-item svg { width: 15px; height: 15px; flex: none; color: var(--teal); }
 .dl-contact-item:hover { color: var(--text); }
 
@@ -817,24 +817,48 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   margin: 0 0 16px;
 }
 
+.dl-profile-logo {
+  position: absolute;
+  top: 16px;
+  left: 18px;
+  z-index: 3;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: -0.3px;
+  background: linear-gradient(120deg, var(--pink), var(--violet) 55%, var(--teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+}
+
 .dl-profile-lang {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
   z-index: 3;
-}
-.dl-profile-lang select {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: var(--bg-elevated);
-  color: var(--muted);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.dl-profile-lang svg { width: 16px; height: 16px; pointer-events: none; }
+.dl-profile-lang select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
   cursor: pointer;
 }
-.dl-profile-lang select:focus { outline: none; border-color: var(--pink); }
+.dl-profile-lang:hover { border-color: var(--border-strong); color: var(--text); }
+.dl-profile-lang:has(select:focus) { outline: 2px solid var(--pink); outline-offset: 1px; }
 
 .dl-profile-reveal { animation: dlCardFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @keyframes dlCardFadeIn {

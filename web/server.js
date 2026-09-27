@@ -241,6 +241,16 @@ function linkLabel(l) {
   return typeof l === 'string' ? '' : l.label || '';
 }
 
+/** Groups a raw phone number into readable chunks for display (the tel: link keeps the untouched original). */
+function formatPhoneDisplay(phone) {
+  const trimmed = (phone || '').trim();
+  const hasPlus = trimmed.startsWith('+');
+  const digits = trimmed.replace(/\D/g, '');
+  if (!digits) return trimmed;
+  const groups = digits.match(/.{1,3}/g) || [];
+  return (hasPlus ? '+' : '') + groups.join(' ');
+}
+
 /**
  * Shared by create and edit: pulls all type-specific content fields out of a
  * form submission. `files` is req.files from the multi-field upload
@@ -1082,6 +1092,7 @@ app.get('/u/:slug', async (req, res) => {
       return res.render('public-profile', {
         card,
         qrDataUrl,
+        phoneDisplay: formatPhoneDisplay(card.phone),
         t,
         lang,
         languages: LANGUAGES,

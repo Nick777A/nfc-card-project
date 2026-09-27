@@ -122,6 +122,10 @@ const DICTIONARY = {
   openInMaps: {
     ru: 'Открыть на карте', en: 'Open in Maps', fr: 'Ouvrir dans Maps', de: 'In Karten öffnen',
     es: 'Abrir en Maps', it: 'Apri in Mappe'
+  },
+  privacyLabel: {
+    ru: 'Политика конфиденциальности', en: 'Privacy', fr: 'Confidentialité', de: 'Datenschutz',
+    es: 'Privacidad', it: 'Privacy'
   }
 };
 
