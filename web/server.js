@@ -258,6 +258,40 @@ function formatPhoneDisplay(phone) {
  * `existing` carries over the previous card's file URLs when no new file
  * was submitted this time.
  */
+function sanitizeHexColor(value, fallback) {
+  const s = (value || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(s) ? s : fallback;
+}
+
+/** Builds the customer's chosen look for their public card, or null to keep the default Digilama style. */
+function buildThemeFromBody(body) {
+  const enabled = body.themeEnabled === 'on' || body.themeEnabled === '1' || body.themeEnabled === 'true';
+  if (!enabled) return null;
+  return {
+    bgMode: body.bgMode === 'gradient' ? 'gradient' : 'solid',
+    bgColor1: sanitizeHexColor(body.bgColor1, '#07070b'),
+    bgColor2: sanitizeHexColor(body.bgColor2, '#1a1a2e'),
+    bgAngle: Math.max(0, Math.min(360, parseInt(body.bgAngle, 10) || 135)),
+    accentColor1: sanitizeHexColor(body.accentColor1, '#ff2e88'),
+    accentColor2: sanitizeHexColor(body.accentColor2, '#00e6c3'),
+    iconColor: sanitizeHexColor(body.iconColor, '#9a9aab'),
+    iconSize: ['sm', 'md', 'lg'].includes(body.iconSize) ? body.iconSize : 'md'
+  };
+}
+
+/** Turns a stored theme into inline style strings for the profile-page wrapper and card elements. */
+function themeStyles(theme) {
+  if (!theme) return { wrapStyle: '', cardStyle: '' };
+  const bg = theme.bgMode === 'gradient'
+    ? `linear-gradient(${theme.bgAngle}deg, ${theme.bgColor1}, ${theme.bgColor2})`
+    : theme.bgColor1;
+  const iconScale = theme.iconSize === 'sm' ? 0.85 : theme.iconSize === 'lg' ? 1.2 : 1;
+  return {
+    wrapStyle: `background:${bg};`,
+    cardStyle: `--u-accent1:${theme.accentColor1};--u-accent2:${theme.accentColor2};--u-icon-color:${theme.iconColor};--u-icon-scale:${iconScale};`
+  };
+}
+
 async function cardFieldsFromBody(body, files, existing = {}) {
   const imageFile = files && files.image && files.image[0];
   const photoFile = files && files.photo && files.photo[0];
@@ -286,6 +320,7 @@ async function cardFieldsFromBody(body, files, existing = {}) {
     company: body.company || '',
     jobTitle: body.jobTitle || '',
     links: parseLinksInput(body.links),
+    theme: buildThemeFromBody(body),
     // url / image
     targetUrl: normalizeExternalUrl(body.targetUrl),
     imageUrl: uploadedImageUrl || normalizeExternalUrl(body.imageUrl) || existing.imageUrl || '',
@@ -508,8 +543,8 @@ app.get('/customer/login', (req, res) => {
 });
 
 app.post('/customer/login', loginLimiter, loginSlowDown, (req, res) => {
-  const email = (req.body.email || '').trim().toLowerCase();
-  const customer = db.getCustomerByEmail(email);
+  const identifier = (req.body.email || '').trim();
+  const customer = db.getCustomerByEmail(identifier.toLowerCase()) || db.getCustomerByPhone(identifier);
   const ok = customer && bcrypt.compareSync(req.body.password || '', customer.passwordHash);
   if (!ok) return res.render('customer-login', { error: 'Incorrect email or password' });
 
@@ -572,6 +607,7 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
     address: body.address || '',
     scheduleText: body.scheduleText || '',
     links: parseLinksInput(body.links),
+    theme: buildThemeFromBody(body),
     photoUrl: photoUrl || card.photoUrl,
     bannerUrl: bannerUrl || card.bannerUrl,
     galleryUrls: galleryUrls || card.galleryUrls || [],
@@ -791,14 +827,13 @@ app.get('/admin/cards/stock', requireAuth, (req, res) => {
 
 app.post('/admin/cards/stock', requireAuth, (req, res) => {
   const quantity = parseInt(req.body.quantity, 10);
-  if (!quantity || quantity < 1 || quantity > 20000) {
-    return res.render('stock-new', { error: 'Введите количество от 1 до 20000' });
+  if (!quantity || quantity < 1 || quantity > 100) {
+    return res.render('stock-new', { error: 'Введите количество от 1 до 100' });
   }
 
   const batchId = crypto.randomUUID();
   for (let i = 0; i < quantity; i += 1) {
-    let slug = generateSlug();
-    while (db.slugTaken(slug)) slug = generateSlug();
+    const slug = db.nextStockCode();
     db.addCard({
       id: crypto.randomUUID(),
       slug,
@@ -1124,6 +1159,7 @@ app.get('/u/:slug', async (req, res) => {
       t, lang, languages: LANGUAGES,
       slug: card.slug,
       loggedIn: !!currentCustomerId(req),
+      method: 'email',
       error: null
     });
   }
@@ -1161,6 +1197,7 @@ app.get('/u/:slug', async (req, res) => {
           : card.type === 'wifi'
             ? 'Wi‑Fi network'
             : 'Digital business card';
+      const { wrapStyle, cardStyle } = themeStyles(card.theme);
       return res.render('public-profile', {
         card,
         qrDataUrl,
@@ -1174,7 +1211,9 @@ app.get('/u/:slug', async (req, res) => {
         ogImage,
         ogTitle,
         ogDescription,
-        base: baseUrl(req)
+        base: baseUrl(req),
+        wrapStyle,
+        cardStyle
       });
     }
   }
@@ -1189,7 +1228,8 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
   }
 
   const render = (error) => res.render('claim-card', {
-    t, lang, languages: LANGUAGES, slug: card.slug, loggedIn: !!currentCustomerId(req), error
+    t, lang, languages: LANGUAGES, slug: card.slug, loggedIn: !!currentCustomerId(req),
+    method: req.body.method === 'phone' ? 'phone' : 'email', error
   });
 
   // Already-signed-in customer just needs one click to attach the card.
@@ -1201,16 +1241,29 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
     return res.redirect(`/my/cards/${card.id}/edit`);
   }
 
-  const email = (req.body.email || '').trim().toLowerCase();
+  const method = req.body.method === 'phone' ? 'phone' : 'email';
   const password = req.body.password || '';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Введите корректный email');
   if (password.length < 6) return render('Пароль должен быть не короче 6 символов');
 
-  const existing = db.getCustomerByEmail(email);
+  let existing;
+  let email = '';
+  let phone = '';
+  if (method === 'phone') {
+    phone = (req.body.phone || '').trim();
+    if (phone.replace(/\D/g, '').length < 6) return render('Введите корректный номер телефона');
+    existing = db.getCustomerByPhone(phone);
+  } else {
+    email = (req.body.email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Введите корректный email');
+    existing = db.getCustomerByEmail(email);
+  }
+
   let customer;
   if (existing) {
     if (!bcrypt.compareSync(password, existing.passwordHash)) {
-      return render('Аккаунт с таким email уже есть — пароль не подошёл. Введите правильный пароль.');
+      return render(method === 'phone'
+        ? 'Аккаунт с таким номером уже есть — пароль не подошёл. Введите правильный пароль.'
+        : 'Аккаунт с таким email уже есть — пароль не подошёл. Введите правильный пароль.');
     }
     customer = existing;
   } else {
@@ -1220,9 +1273,9 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
     customer = {
       id: crypto.randomUUID(),
       email,
+      phone,
       passwordHash: bcrypt.hashSync(password, 10),
       contactName,
-      phone: '',
       company: '',
       createdAt: Date.now()
     };

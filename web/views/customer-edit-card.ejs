@@ -74,9 +74,77 @@
           <label for="address">Address</label>
           <input type="text" id="address" name="address" value="<%= card.address || '' %>" />
         </div>
+
+        <h2 style="margin:28px 0 4px; font-size:16px;">Appearance</h2>
+        <p class="dl-hint" style="margin-top:0;">Choose your own colors for the public card — background, accent gradient and icons — instead of the default Digilama look.</p>
+        <div class="dl-field">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" id="themeEnabled" name="themeEnabled" style="width:auto;" <%= card.theme ? 'checked' : '' %> />
+            Use custom style
+          </label>
+        </div>
+        <div id="theme-fields" style="<%= card.theme ? '' : 'display:none;' %>">
+          <div class="dl-field">
+            <label>Background</label>
+            <div style="display:flex; gap:16px; align-items:center; margin-bottom:8px;">
+              <label style="display:flex; align-items:center; gap:6px; font-weight:400;"><input type="radio" name="bgMode" value="solid" style="width:auto;" <%= (!card.theme || card.theme.bgMode !== 'gradient') ? 'checked' : '' %> /> Solid color</label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:400;"><input type="radio" name="bgMode" value="gradient" style="width:auto;" <%= (card.theme && card.theme.bgMode === 'gradient') ? 'checked' : '' %> /> Gradient</label>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+              <input type="color" name="bgColor1" value="<%= (card.theme && card.theme.bgColor1) || '#07070b' %>" style="width:56px; height:36px; padding:2px;" />
+              <input type="color" name="bgColor2" id="bgColor2" value="<%= (card.theme && card.theme.bgColor2) || '#1a1a2e' %>" style="width:56px; height:36px; padding:2px; <%= (card.theme && card.theme.bgMode === 'gradient') ? '' : 'display:none;' %>" />
+              <label id="bgAngleWrap" style="display:flex; align-items:center; gap:6px; font-weight:400; <%= (card.theme && card.theme.bgMode === 'gradient') ? '' : 'display:none;' %>">
+                Angle <input type="number" name="bgAngle" min="0" max="360" value="<%= (card.theme && card.theme.bgAngle) || 135 %>" style="width:70px;" />
+              </label>
+            </div>
+          </div>
+          <div class="dl-field">
+            <label>Accent colors (buttons, active tab, avatar ring, icons on hover)</label>
+            <div style="display:flex; gap:12px;">
+              <input type="color" name="accentColor1" value="<%= (card.theme && card.theme.accentColor1) || '#ff2e88' %>" style="width:56px; height:36px; padding:2px;" />
+              <input type="color" name="accentColor2" value="<%= (card.theme && card.theme.accentColor2) || '#00e6c3' %>" style="width:56px; height:36px; padding:2px;" />
+            </div>
+          </div>
+          <div class="dl-row">
+            <div class="dl-field">
+              <label>Icon color</label>
+              <input type="color" name="iconColor" value="<%= (card.theme && card.theme.iconColor) || '#9a9aab' %>" style="width:56px; height:36px; padding:2px;" />
+            </div>
+            <div class="dl-field">
+              <label for="iconSize">Icon size</label>
+              <select id="iconSize" name="iconSize">
+                <option value="sm" <%= card.theme && card.theme.iconSize === 'sm' ? 'selected' : '' %>>Small</option>
+                <option value="md" <%= !card.theme || card.theme.iconSize === 'md' ? 'selected' : '' %>>Medium</option>
+                <option value="lg" <%= card.theme && card.theme.iconSize === 'lg' ? 'selected' : '' %>>Large</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <button type="submit" class="dl-btn primary block">Save</button>
       </form>
     </div>
   </div>
+
+  <script>
+    (function () {
+      var enabledBox = document.getElementById('themeEnabled');
+      var fields = document.getElementById('theme-fields');
+      var bgModeRadios = document.querySelectorAll('input[name="bgMode"]');
+      var bgColor2 = document.getElementById('bgColor2');
+      var bgAngleWrap = document.getElementById('bgAngleWrap');
+
+      enabledBox.addEventListener('change', function () {
+        fields.style.display = enabledBox.checked ? '' : 'none';
+      });
+
+      function syncGradientFields() {
+        var isGradient = document.querySelector('input[name="bgMode"]:checked').value === 'gradient';
+        bgColor2.style.display = isGradient ? '' : 'none';
+        bgAngleWrap.style.display = isGradient ? '' : 'none';
+      }
+      bgModeRadios.forEach(function (r) { r.addEventListener('change', syncGradientFields); });
+    })();
+  </script>
 </body>
 </html>

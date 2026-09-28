@@ -243,6 +243,24 @@ const DICTIONARY = {
     es: 'Si ya tienes una cuenta de Digilama, introduce su email y contraseña — la tarjeta se añadirá a ella.',
     it: 'Se hai già un account Digilama, inserisci semplicemente la sua email e password — la scheda verrà aggiunta.'
   },
+  claimMethodEmail: {
+    ru: 'Email', en: 'Email', fr: 'Email', de: 'E-Mail', es: 'Correo', it: 'Email'
+  },
+  claimMethodPhone: {
+    ru: 'Телефон', en: 'Phone', fr: 'Téléphone', de: 'Telefon', es: 'Teléfono', it: 'Telefono'
+  },
+  claimPhoneLabel: {
+    ru: 'Номер телефона', en: 'Phone number', fr: 'Numéro de téléphone',
+    de: 'Telefonnummer', es: 'Número de teléfono', it: 'Numero di telefono'
+  },
+  claimPhoneHint: {
+    ru: 'Без SMS-подтверждения — просто придумайте пароль для входа по этому номеру.',
+    en: 'No SMS confirmation — just set a password to sign in with this number.',
+    fr: 'Aucune confirmation par SMS — définissez simplement un mot de passe pour vous connecter avec ce numéro.',
+    de: 'Keine SMS-Bestätigung — legen Sie einfach ein Passwort für die Anmeldung mit dieser Nummer fest.',
+    es: 'Sin confirmación por SMS — simplemente crea una contraseña para acceder con este número.',
+    it: 'Nessuna conferma via SMS — imposta semplicemente una password per accedere con questo numero.'
+  },
   claimSubmit: {
     ru: 'Активировать карточку', en: 'Activate card', fr: 'Activer la carte',
     de: 'Karte aktivieren', es: 'Activar tarjeta', it: 'Attiva scheda'

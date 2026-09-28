@@ -56,7 +56,27 @@ let state = loadFromFile() || defaultData();
 function applyDefaults(s) {
   if (!Array.isArray(s.customers)) s.customers = [];
   if (!Array.isArray(s.orders)) s.orders = [];
+  if (!Number.isInteger(s.stockCounter)) s.stockCounter = 0;
   return s;
+}
+
+/** Spreadsheet-style column letters: 0->A, 1->B, ..., 25->Z, 26->AA, 27->AB, ... */
+function letterPrefix(n) {
+  let x = n + 1;
+  let s = '';
+  while (x > 0) {
+    const rem = (x - 1) % 26;
+    s = String.fromCharCode(97 + rem) + s;
+    x = Math.floor((x - 1) / 26);
+  }
+  return s;
+}
+
+/** Turns a 0-based counter into a printable stock code: a001, a002, ..., a999, b001, ... */
+function stockCodeForIndex(n) {
+  const group = Math.floor(n / 999);
+  const num = (n % 999) + 1;
+  return `${letterPrefix(group)}${String(num).padStart(3, '0')}`;
 }
 state = applyDefaults(state);
 
@@ -194,6 +214,16 @@ module.exports = {
   slugTaken(slug, excludeId) {
     return state.cards.some((c) => c.slug === slug && c.id !== excludeId);
   },
+  /** Reserves the next sequential stock code (a001, a002, ...), skipping any already in use. */
+  nextStockCode() {
+    let code;
+    do {
+      code = stockCodeForIndex(state.stockCounter);
+      state.stockCounter += 1;
+    } while (state.cards.some((c) => c.slug === code));
+    persist();
+    return code;
+  },
   recordView(id) {
     const card = state.cards.find((c) => c.id === id);
     if (!card) return;
@@ -215,7 +245,13 @@ module.exports = {
 
   getCustomerByEmail(email) {
     const normalized = (email || '').trim().toLowerCase();
+    if (!normalized) return null;
     return state.customers.find((c) => c.email === normalized) || null;
+  },
+  getCustomerByPhone(phone) {
+    const normalized = (phone || '').replace(/\D/g, '');
+    if (!normalized) return null;
+    return state.customers.find((c) => c.phone && c.phone.replace(/\D/g, '') === normalized) || null;
   },
   getCustomerById(id) {
     return state.customers.find((c) => c.id === id) || null;

@@ -22,7 +22,7 @@
         <tbody>
           <% rows.slice(0, 200).forEach(function(r) { %>
             <tr>
-              <td><%= r.slug %></td>
+              <td><%= r.slug.toUpperCase() %></td>
               <td><a href="<%= r.url %>" target="_blank"><%= r.url %></a></td>
               <td><%= r.claimed ? 'Активирована' : 'Свободна' %></td>
             </tr>

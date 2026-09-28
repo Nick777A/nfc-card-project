@@ -581,6 +581,10 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   padding: 32px 16px;
 }
 .dl-profile-card {
+  --u-accent1: var(--pink);
+  --u-accent2: var(--teal);
+  --u-icon-color: var(--muted);
+  --u-icon-scale: 1;
   width: 100%;
   max-width: 400px;
   background: var(--card-bg);
@@ -597,7 +601,7 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--pink), var(--violet), var(--teal));
+  background: linear-gradient(90deg, var(--u-accent1), var(--u-accent2));
 }
 
 .dl-tap-badge {
@@ -608,9 +612,9 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: var(--teal);
-  background: rgba(0, 230, 195, 0.1);
-  border: 1px solid rgba(0, 230, 195, 0.3);
+  color: var(--u-accent2, var(--teal));
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
   padding: 5px 12px;
   border-radius: 999px;
   margin-bottom: 20px;
@@ -619,7 +623,7 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
 }
 .dl-tap-badge .dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--teal);
+  background: var(--u-accent2, var(--teal));
   animation: dlDotPulse 1.4s ease-in-out infinite;
 }
 @keyframes dlTapBadgeIn {
@@ -633,22 +637,22 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
 
 .dl-avatar {
   position: relative;
-  width: 104px; height: 104px;
+  width: calc(104px * var(--u-icon-scale, 1)); height: calc(104px * var(--u-icon-scale, 1));
   margin: 0 auto 18px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--pink), var(--violet));
-  font-size: 38px; font-weight: 800; color: #fff;
+  background: linear-gradient(135deg, var(--u-accent1, var(--pink)), var(--u-accent2, var(--violet)));
+  font-size: calc(38px * var(--u-icon-scale, 1)); font-weight: 800; color: #fff;
   overflow: hidden;
 }
 .dl-avatar.has-photo { background: var(--bg-elevated); }
 .dl-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .dl-avatar-ring {
   position: absolute;
-  inset: -8px;
+  inset: calc(-8px * var(--u-icon-scale, 1));
   border-radius: 50%;
   border: 2px solid transparent;
-  border-image: linear-gradient(135deg, var(--pink), var(--violet), var(--teal)) 1;
+  border-image: linear-gradient(135deg, var(--u-accent1, var(--pink)), var(--u-accent2, var(--teal))) 1;
   animation: dlAvatarPulse 2.6s ease-out infinite;
 }
 @keyframes dlAvatarPulse {
@@ -683,18 +687,18 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px; height: 46px;
+  width: calc(46px * var(--u-icon-scale, 1)); height: calc(46px * var(--u-icon-scale, 1));
   border-radius: 50%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  color: var(--muted);
+  color: var(--u-icon-color, var(--muted));
   transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
-.dl-social-icon svg { width: 20px; height: 20px; }
+.dl-social-icon svg { width: calc(20px * var(--u-icon-scale, 1)); height: calc(20px * var(--u-icon-scale, 1)); }
 .dl-social-icon:hover {
   color: #fff;
-  border-color: var(--pink);
-  background: linear-gradient(135deg, var(--pink), var(--violet));
+  border-color: var(--u-accent1, var(--pink));
+  background: linear-gradient(135deg, var(--u-accent1, var(--pink)), var(--u-accent2, var(--violet)));
   transform: translateY(-3px) scale(1.07);
   text-decoration: none;
 }
@@ -716,6 +720,9 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 .dl-qr-fallback .dl-hint { max-width: 260px; margin: 12px auto 0; }
+
+.dl-profile-card .dl-btn.primary { background: linear-gradient(120deg, var(--u-accent1, var(--pink)), var(--u-accent2, var(--violet))); }
+.dl-profile-card .dl-btn.secondary:hover { border-color: var(--u-accent1, var(--teal)); color: var(--u-accent1, var(--teal)); }
 
 /* ---- Profile card: banner, avatar overlap, contact row, tabs ---- */
 .dl-banner {
@@ -745,7 +752,7 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   max-width: 100%;
 }
 .dl-contact-item span { white-space: nowrap; }
-.dl-contact-item svg { width: 15px; height: 15px; flex: none; color: var(--teal); }
+.dl-contact-item svg { width: calc(15px * var(--u-icon-scale, 1)); height: calc(15px * var(--u-icon-scale, 1)); flex: none; color: var(--u-icon-color, var(--teal)); }
 .dl-contact-item:hover { color: var(--text); }
 
 .dl-tabs {
@@ -770,8 +777,8 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   border-bottom: 2px solid transparent;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
-.dl-tab svg { width: 18px; height: 18px; }
-.dl-tab.active { color: var(--text); border-bottom-color: var(--pink); }
+.dl-tab svg { width: calc(18px * var(--u-icon-scale, 1)); height: calc(18px * var(--u-icon-scale, 1)); }
+.dl-tab.active { color: var(--text); border-bottom-color: var(--u-accent1, var(--pink)); }
 .dl-tab:hover { color: var(--text); }
 
 .dl-tab-panel { display: none; text-align: left; }
@@ -793,9 +800,9 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   font-size: 14px;
 }
 .dl-link-row:last-child { border-bottom: none; }
-.dl-link-row svg { width: 17px; height: 17px; flex: none; color: var(--teal); }
+.dl-link-row svg { width: calc(17px * var(--u-icon-scale, 1)); height: calc(17px * var(--u-icon-scale, 1)); flex: none; color: var(--u-icon-color, var(--teal)); }
 .dl-link-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dl-link-row:hover { color: var(--teal); }
+.dl-link-row:hover { color: var(--u-accent1, var(--teal)); }
 
 .dl-gallery-grid {
   display: grid;

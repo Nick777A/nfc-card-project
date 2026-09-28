@@ -29,15 +29,25 @@
           <button type="submit" class="dl-btn primary block"><%= t('claimAttachButton') %></button>
         </form>
       <% } else { %>
+        <div class="dl-tabs" style="margin:0 0 20px;">
+          <button type="button" class="dl-tab claim-method-tab <%= method !== 'phone' ? 'active' : '' %>" data-method="email"><%= t('claimMethodEmail') %></button>
+          <button type="button" class="dl-tab claim-method-tab <%= method === 'phone' ? 'active' : '' %>" data-method="phone"><%= t('claimMethodPhone') %></button>
+        </div>
         <form method="post" action="/u/<%= slug %>/claim">
+          <input type="hidden" id="claim-method-input" name="method" value="<%= method %>" />
           <div class="dl-field">
             <label for="contactName"><%= t('claimNameLabel') %></label>
             <input type="text" id="contactName" name="contactName" />
           </div>
-          <div class="dl-field">
+          <div class="dl-field claim-field-email" style="<%= method === 'phone' ? 'display:none;' : '' %>">
             <label for="email"><%= t('claimEmailLabel') %></label>
-            <input type="email" id="email" name="email" required />
+            <input type="email" id="email" name="email" <%= method === 'phone' ? '' : 'required' %> />
             <p class="dl-hint"><%= t('claimEmailHint') %></p>
+          </div>
+          <div class="dl-field claim-field-phone" style="<%= method === 'phone' ? '' : 'display:none;' %>">
+            <label for="phone"><%= t('claimPhoneLabel') %></label>
+            <input type="tel" id="phone" name="phone" <%= method === 'phone' ? 'required' : '' %> />
+            <p class="dl-hint"><%= t('claimPhoneHint') %></p>
           </div>
           <div class="dl-field">
             <label for="password"><%= t('claimPasswordLabel') %></label>
@@ -49,6 +59,34 @@
           </div>
           <button type="submit" class="dl-btn primary block"><%= t('claimSubmit') %></button>
         </form>
+        <script>
+          (function () {
+            var tabs = document.querySelectorAll('.claim-method-tab');
+            var methodInput = document.getElementById('claim-method-input');
+            var emailField = document.querySelector('.claim-field-email');
+            var phoneField = document.querySelector('.claim-field-phone');
+            var emailInput = document.getElementById('email');
+            var phoneInput = document.getElementById('phone');
+            tabs.forEach(function (tab) {
+              tab.addEventListener('click', function () {
+                var method = tab.getAttribute('data-method');
+                tabs.forEach(function (t2) { t2.classList.toggle('active', t2 === tab); });
+                methodInput.value = method;
+                if (method === 'phone') {
+                  emailField.style.display = 'none';
+                  phoneField.style.display = '';
+                  emailInput.required = false;
+                  phoneInput.required = true;
+                } else {
+                  emailField.style.display = '';
+                  phoneField.style.display = 'none';
+                  emailInput.required = true;
+                  phoneInput.required = false;
+                }
+              });
+            });
+          })();
+        </script>
       <% } %>
     </div>
   </div>
