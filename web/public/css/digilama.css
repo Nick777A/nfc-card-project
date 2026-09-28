@@ -724,6 +724,77 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
 .dl-profile-card .dl-btn.primary { background: linear-gradient(120deg, var(--u-accent1, var(--pink)), var(--u-accent2, var(--violet))); }
 .dl-profile-card .dl-btn.secondary:hover { border-color: var(--u-accent1, var(--teal)); color: var(--u-accent1, var(--teal)); }
 
+/* ---- Appearance editor: preset swatches + live phone preview (customer-edit-card.ejs) ---- */
+.dl-appearance-panel {
+  margin: 28px 0 0;
+  padding: 22px 20px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255, 46, 136, 0.06), rgba(0, 230, 195, 0.05));
+  border: 1px solid var(--border);
+}
+.dl-appearance-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 18px; }
+@media (min-width: 720px) {
+  .dl-appearance-grid { grid-template-columns: 1.1fr 0.9fr; align-items: start; }
+  .dl-appearance-preview { position: sticky; top: 20px; }
+}
+
+.dl-theme-presets { display: flex; gap: 12px; flex-wrap: wrap; }
+.dl-theme-swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-family: inherit;
+}
+.dl-swatch-dot {
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--border);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.dl-swatch-dot i { width: 18px; height: 18px; border-radius: 50%; display: block; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); font-style: normal; }
+.dl-theme-swatch em { font-style: normal; font-size: 10px; color: var(--faint); font-weight: 600; }
+.dl-theme-swatch:hover .dl-swatch-dot { transform: translateY(-3px); border-color: var(--border-strong); }
+.dl-theme-swatch.is-active .dl-swatch-dot { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255, 46, 136, 0.2); }
+.dl-theme-swatch.is-active em { color: var(--text); }
+
+.dl-color-input { width: 52px; height: 40px; padding: 3px; border-radius: 10px; }
+
+.dl-preview-phone {
+  max-width: 250px;
+  margin: 0 auto;
+  padding: 12px 9px;
+  background: #050507;
+  border-radius: 32px;
+  border: 3px solid #000;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+.dl-preview-phone::before {
+  content: '';
+  display: block;
+  width: 46px; height: 5px;
+  margin: 0 auto 10px;
+  border-radius: 999px;
+  background: #1c1c22;
+}
+.dl-theme-preview-wrap {
+  border-radius: 22px;
+  padding: 26px 14px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+.dl-theme-preview-card {
+  max-width: 100%;
+  width: 100%;
+  padding: 20px 16px 18px;
+  box-shadow: none;
+  border: none;
+}
+.dl-theme-preview-card .dl-avatar { width: calc(60px * var(--u-icon-scale, 1)); height: calc(60px * var(--u-icon-scale, 1)); font-size: calc(22px * var(--u-icon-scale, 1)); }
+
 /* ---- Profile card: banner, avatar overlap, contact row, tabs ---- */
 .dl-banner {
   margin: -34px -26px 0 -26px;
