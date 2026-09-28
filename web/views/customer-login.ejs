@@ -10,11 +10,13 @@
     <div class="dl-nav-links"><a href="/order">Order now</a></div>
   </nav>
 
-  <div class="dl-container narrow" style="margin-top:40px; padding-bottom:60px;">
-    <div class="dl-card">
-      <h1 style="margin-top:0;">Log in to your account</h1>
+  <div class="dl-container narrow" style="margin-top:60px; padding-bottom:60px;">
+    <div class="dl-card" style="text-align:center;">
+      <div style="width:52px; height:52px; margin:0 auto 16px; border-radius:16px; background:linear-gradient(135deg, var(--pink), var(--violet)); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; color:#fff;">D</div>
+      <h1 style="margin:0 0 4px;">Welcome back</h1>
+      <p class="dl-hint" style="margin:0 0 24px;">Log in to edit your card, links and design.</p>
       <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
-      <form method="post" action="/customer/login">
+      <form method="post" action="/customer/login" style="text-align:left;">
         <div class="dl-field">
           <label for="email">Email or phone</label>
           <input type="text" id="email" name="email" required autofocus />

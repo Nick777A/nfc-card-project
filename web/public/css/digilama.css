@@ -725,6 +725,21 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
 .dl-profile-card .dl-btn.secondary:hover { border-color: var(--u-accent1, var(--teal)); color: var(--u-accent1, var(--teal)); }
 
 /* ---- Appearance editor: preset swatches + live phone preview (customer-edit-card.ejs) ---- */
+.dl-form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin: 30px 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.dl-card form > .dl-form-section-title:first-child { margin-top: 22px; }
+
 .dl-appearance-panel {
   margin: 28px 0 0;
   padding: 22px 20px;
@@ -794,6 +809,49 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   border: none;
 }
 .dl-theme-preview-card .dl-avatar { width: calc(60px * var(--u-icon-scale, 1)); height: calc(60px * var(--u-icon-scale, 1)); font-size: calc(22px * var(--u-icon-scale, 1)); }
+
+/* ---- Customer dashboard (/my) ---- */
+.dl-my-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.dl-my-stats { display: flex; gap: 22px; }
+.dl-my-stat { text-align: right; }
+.dl-my-stat strong { display: block; font-size: 22px; font-weight: 800; background: linear-gradient(120deg, var(--pink), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.dl-my-stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+.dl-my-empty { text-align: center; padding: 46px 24px; }
+.dl-my-empty-icon { font-size: 34px; margin-bottom: 10px; }
+
+.dl-mycards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.dl-mycard-tile {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.dl-mycard-tile:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.dl-mycard-top { display: flex; align-items: center; gap: 12px; }
+.dl-mycard-avatar {
+  flex: none;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: #fff; font-size: 17px;
+  overflow: hidden;
+}
+.dl-mycard-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dl-mycard-name { flex: 1; min-width: 0; }
+.dl-mycard-name .name { margin: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-mycard-name .link { margin: 2px 0 0; font-size: 12px; color: var(--teal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-mycard-meta { margin: 12px 0 14px; font-size: 12px; color: var(--faint); }
+.dl-mycard-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.dl-mycard-actions .dl-btn { flex: 1; text-align: center; white-space: nowrap; }
 
 /* ---- Profile card: banner, avatar overlap, contact row, tabs ---- */
 .dl-banner {

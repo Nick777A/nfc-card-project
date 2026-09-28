@@ -564,9 +564,10 @@ app.post('/customer/logout', (req, res) => {
 });
 
 app.get('/my', requireCustomerAuth, (req, res) => {
+  const customer = db.getCustomerById(req.customerId);
   const orders = db.listOrdersByCustomer(req.customerId);
   const cards = db.listCardsByCustomer(req.customerId);
-  res.render('customer-dashboard', { orders, cards, designOptions: DESIGN_OPTIONS, base: baseUrl(req) });
+  res.render('customer-dashboard', { customer, orders, cards, designOptions: DESIGN_OPTIONS, base: baseUrl(req) });
 });
 
 app.get('/my/cards/:id/edit', requireCustomerAuth, (req, res) => {

@@ -8,7 +8,7 @@
   <nav class="dl-nav">
     <a class="dl-logo" href="/">digilama</a>
     <div class="dl-nav-links">
-      <a href="/order">New order</a>
+      <a href="/order">+ New order</a>
       <form method="post" action="/customer/logout" style="margin:0;">
         <button type="submit" style="background:none; border:none; color:var(--muted); font:inherit; cursor:pointer; font-weight:600;">Log out</button>
       </form>
@@ -16,31 +16,64 @@
   </nav>
 
   <div class="dl-container" style="padding-bottom:60px;">
-    <h1>My cards</h1>
+    <div class="dl-my-header">
+      <div>
+        <p class="dl-hint" style="margin:0 0 4px; text-transform:uppercase; letter-spacing:0.5px; font-size:11px; font-weight:700;">My account</p>
+        <h1 style="margin:0;">Hi, <%= (customer && (customer.contactName || customer.company)) || 'there' %> 👋</h1>
+      </div>
+      <div class="dl-my-stats">
+        <div class="dl-my-stat"><strong><%= cards.length %></strong><span>card<%= cards.length === 1 ? '' : 's' %></span></div>
+        <div class="dl-my-stat"><strong><%= cards.reduce(function(sum, c) { return sum + (c.viewCount || 0); }, 0) %></strong><span>total taps</span></div>
+      </div>
+    </div>
+
     <% if (cards.length === 0) { %>
-      <div class="dl-card">
-        <p style="margin:0;">No cards yet — once we process your order, your card will appear here and you'll be able to edit its details.</p>
+      <div class="dl-card dl-my-empty">
+        <div class="dl-my-empty-icon">💳</div>
+        <p style="margin:0 0 4px; font-weight:700;">No cards yet</p>
+        <p class="dl-hint" style="margin:0 0 18px;">Once your order is processed, your card will show up here — you'll be able to edit its details, links and look any time.</p>
+        <a href="/order" class="dl-btn primary" style="padding:10px 22px;">Order a card</a>
       </div>
     <% } else { %>
-      <div class="dl-card" style="padding:0; overflow-x:auto;">
-        <table class="dl-table">
-          <thead><tr><th>Name</th><th>Link</th><th></th></tr></thead>
-          <tbody>
-            <% cards.forEach(function(card) { %>
-              <tr>
-                <td><%= card.fullName || card.label %></td>
-                <td><a href="<%= base %>/u/<%= card.slug %>" target="_blank" style="color:var(--teal);"><%= base.replace(/^https?:\/\//,'') %>/u/<%= card.slug %></a></td>
-                <td><a href="/my/cards/<%= card.id %>/edit" class="dl-btn secondary" style="padding:8px 16px; font-size:13px;">Edit</a></td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
+      <div class="dl-mycards-grid">
+        <% cards.forEach(function(card) { %>
+          <% var t1 = (card.theme && card.theme.accentColor1) || '#ff2e88'; var t2 = (card.theme && card.theme.accentColor2) || '#00e6c3'; %>
+          <div class="dl-mycard-tile">
+            <div class="dl-mycard-top">
+              <div class="dl-mycard-avatar" style="background:linear-gradient(135deg, <%= t1 %>, <%= t2 %>);">
+                <% if (card.photoUrl) { %>
+                  <img src="<%= card.photoUrl %>" alt="" />
+                <% } else { %>
+                  <%= ((card.fullName || card.label || '?').trim().charAt(0) || '?').toUpperCase() %>
+                <% } %>
+              </div>
+              <div class="dl-mycard-name">
+                <p class="name"><%= card.fullName || card.label %></p>
+                <p class="link"><%= base.replace(/^https?:\/\//,'') %>/u/<%= card.slug %></p>
+              </div>
+              <% if (card.active === false) { %>
+                <span class="dl-badge-status cancelled">paused</span>
+              <% } else { %>
+                <span class="dl-badge-status fulfilled">active</span>
+              <% } %>
+            </div>
+            <div class="dl-mycard-meta">
+              <span>👁 <%= card.viewCount || 0 %> taps</span>
+              <% if (card.lastViewedAt) { %><span>· last <%= new Date(card.lastViewedAt).toLocaleDateString('en-GB') %></span><% } %>
+            </div>
+            <div class="dl-mycard-actions">
+              <button type="button" class="dl-btn secondary dl-copy-link" data-url="<%= base %>/u/<%= card.slug %>" style="padding:9px 14px; font-size:13px;">Copy link</button>
+              <a href="<%= base %>/u/<%= card.slug %>" target="_blank" class="dl-btn secondary" style="padding:9px 14px; font-size:13px;">View</a>
+              <a href="/my/cards/<%= card.id %>/edit" class="dl-btn primary" style="padding:9px 14px; font-size:13px;">Edit</a>
+            </div>
+          </div>
+        <% }) %>
       </div>
     <% } %>
 
-    <h1 style="margin-top:40px;">My orders</h1>
+    <h2 style="margin-top:44px; font-size:16px;">Order history</h2>
     <% if (orders.length === 0) { %>
-      <div class="dl-card"><p style="margin:0;">No orders yet.</p></div>
+      <div class="dl-card"><p class="dl-hint" style="margin:0;">No orders yet.</p></div>
     <% } else { %>
       <div class="dl-card" style="padding:0; overflow-x:auto;">
         <table class="dl-table">
@@ -61,5 +94,7 @@
       </div>
     <% } %>
   </div>
+
+  <script src="/js/customer-dashboard.js"></script>
 </body>
 </html>
