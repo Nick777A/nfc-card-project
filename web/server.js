@@ -42,6 +42,13 @@ const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
 const BACKUP_TOKEN = process.env.BACKUP_TOKEN;
 const CUSTOMER_AUTH_COOKIE = 'customer_session';
 const CUSTOMER_AUTH_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
+// Bridges "registered/logged in for this card" to "actually made it theirs":
+// a stock card is only ever linked to a customer once they hit Save on the
+// edit form, so scanning + registering without finishing never assigns
+// ownership. This cookie is the only thing that lets that first edit-page
+// visit in before the card is really theirs.
+const PENDING_CLAIM_COOKIE = 'pending_claim_card';
+const PENDING_CLAIM_MAX_AGE = 2 * 60 * 60 * 1000; // 2 hours
 
 const app = express();
 app.set('view engine', 'ejs');
@@ -571,15 +578,23 @@ app.get('/my', requireCustomerAuth, (req, res) => {
   res.render('customer-dashboard', { customer, orders, cards, designOptions: DESIGN_OPTIONS, base: baseUrl(req) });
 });
 
+/** True while this card is unclaimed but this browser just registered/attached for it and hasn't saved yet. */
+function hasPendingClaim(req, card) {
+  const pendingId = req.signedCookies && req.signedCookies[PENDING_CLAIM_COOKIE];
+  return !!(card.claimable && !card.customerId && pendingId === card.id);
+}
+
 app.get('/my/cards/:id/edit', requireCustomerAuth, (req, res) => {
   const card = db.getCardById(req.params.id);
-  if (!card || card.customerId !== req.customerId) return res.status(404).send('Card not found');
-  res.render('customer-edit-card', { card, error: null });
+  const pendingClaim = card && hasPendingClaim(req, card);
+  if (!card || (card.customerId !== req.customerId && !pendingClaim)) return res.status(404).send('Card not found');
+  res.render('customer-edit-card', { card, pendingClaim, error: null });
 });
 
 app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req, res) => {
   const card = db.getCardById(req.params.id);
-  if (!card || card.customerId !== req.customerId) return res.status(404).send('Card not found');
+  const pendingClaim = card && hasPendingClaim(req, card);
+  if (!card || (card.customerId !== req.customerId && !pendingClaim)) return res.status(404).send('Card not found');
 
   const body = req.body;
   const photoFile = req.files && req.files.photo && req.files.photo[0];
@@ -595,11 +610,12 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
     ]);
   } catch (e) {
     console.error('Upload failed:', e.message);
-    return res.render('customer-edit-card', { card, error: 'Could not upload the image, please try again' });
+    return res.render('customer-edit-card', { card, pendingClaim, error: 'Could not upload the image, please try again' });
   }
 
+  const fullName = body.fullName || '';
   db.updateCard(card.id, {
-    fullName: body.fullName || '',
+    fullName,
     tagline: body.tagline || '',
     phone: body.phone || '',
     email: body.email || '',
@@ -613,8 +629,15 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
     photoUrl: photoUrl || card.photoUrl,
     bannerUrl: bannerUrl || card.bannerUrl,
     galleryUrls: galleryUrls || card.galleryUrls || [],
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
+    // This save is what actually makes the card theirs — scanning and
+    // registering alone never does, so an abandoned signup leaves the
+    // card free for the next person to claim.
+    ...(pendingClaim
+      ? { customerId: req.customerId, claimable: false, label: `${card.slug.toUpperCase()} — ${fullName || 'Card'}` }
+      : {})
   });
+  if (pendingClaim) res.clearCookie(PENDING_CLAIM_COOKIE);
   res.redirect('/my');
 });
 
@@ -1254,13 +1277,24 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
     method: req.body.method === 'phone' ? 'phone' : 'email', error
   });
 
-  // Already-signed-in customer just needs one click to attach the card.
+  function goToEditPending() {
+    res.cookie(PENDING_CLAIM_COOKIE, card.id, {
+      signed: true,
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: 'lax',
+      maxAge: PENDING_CLAIM_MAX_AGE
+    });
+    res.redirect(`/my/cards/${card.id}/edit`);
+  }
+
+  // Already-signed-in customer: send them to the editor, but the card only
+  // becomes theirs once they actually save something there.
   const existingCustomerId = currentCustomerId(req);
   if (existingCustomerId) {
     const customer = db.getCustomerById(existingCustomerId);
     if (!customer) return render('Сессия истекла, войдите заново');
-    db.updateCard(card.id, { customerId: customer.id, claimable: false, label: `${card.slug.toUpperCase()} — ${customer.contactName || customer.company || 'Card'}` });
-    return res.redirect(`/my/cards/${card.id}/edit`);
+    return goToEditPending();
   }
 
   const method = req.body.method === 'phone' ? 'phone' : 'email';
@@ -1304,8 +1338,6 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
     db.addCustomer(customer);
   }
 
-  db.updateCard(card.id, { customerId: customer.id, claimable: false, label: `${card.slug.toUpperCase()} — ${customer.contactName || customer.company || 'Card'}` });
-
   res.cookie(CUSTOMER_AUTH_COOKIE, customer.id, {
     signed: true,
     httpOnly: true,
@@ -1313,7 +1345,7 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
     sameSite: 'lax',
     maxAge: CUSTOMER_AUTH_COOKIE_MAX_AGE
   });
-  res.redirect(`/my/cards/${card.id}/edit`);
+  goToEditPending();
 });
 
 app.get('/u/:slug/vcard', (req, res) => {

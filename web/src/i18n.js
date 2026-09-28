@@ -207,20 +207,20 @@ const DICTIONARY = {
     de: 'Aktivieren Sie Ihre Karte', es: 'Activa tu tarjeta', it: 'Attiva la tua scheda'
   },
   claimHint: {
-    ru: 'Эта NFC-карта ещё никому не принадлежит. Создайте аккаунт (или войдите в существующий), и она навсегда станет вашей — заполнить её можно будет в любой момент.',
-    en: "This NFC card doesn't belong to anyone yet. Create an account (or sign in to an existing one) and it will become yours for good — you can fill it in any time.",
-    fr: "Cette carte NFC n'appartient encore à personne. Créez un compte (ou connectez-vous à un compte existant) et elle deviendra définitivement la vôtre — vous pourrez la remplir à tout moment.",
-    de: 'Diese NFC-Karte gehört noch niemandem. Erstellen Sie ein Konto (oder melden Sie sich bei einem bestehenden an), und sie gehört dauerhaft Ihnen — Sie können sie jederzeit ausfüllen.',
-    es: 'Esta tarjeta NFC todavía no pertenece a nadie. Crea una cuenta (o inicia sesión en una existente) y será tuya para siempre — podrás completarla en cualquier momento.',
-    it: 'Questa scheda NFC non appartiene ancora a nessuno. Crea un account (o accedi a uno esistente) e diventerà tua per sempre — potrai compilarla in qualsiasi momento.'
+    ru: 'Эта NFC-карта ещё никому не принадлежит. Создайте аккаунт (или войдите в существующий) и заполните карточку — она станет вашей только после того, как вы её сохраните.',
+    en: "This NFC card doesn't belong to anyone yet. Create an account (or sign in to an existing one) and fill in the card — it only becomes yours once you save it.",
+    fr: "Cette carte NFC n'appartient encore à personne. Créez un compte (ou connectez-vous) et remplissez la carte — elle ne sera à vous qu'une fois enregistrée.",
+    de: 'Diese NFC-Karte gehört noch niemandem. Erstellen Sie ein Konto (oder melden Sie sich an) und füllen Sie die Karte aus — sie gehört Ihnen erst nach dem Speichern.',
+    es: 'Esta tarjeta NFC todavía no pertenece a nadie. Crea una cuenta (o inicia sesión) y completa la tarjeta — será tuya solo después de guardarla.',
+    it: 'Questa scheda NFC non appartiene ancora a nessuno. Crea un account (o accedi) e compila la scheda — sarà tua solo dopo averla salvata.'
   },
   claimAlreadyLoggedInHint: {
-    ru: 'Вы уже вошли в аккаунт. Привяжите эту карточку к нему в один клик.',
-    en: "You're already signed in. Attach this card to your account in one click.",
-    fr: 'Vous êtes déjà connecté. Associez cette carte à votre compte en un clic.',
-    de: 'Sie sind bereits angemeldet. Verknüpfen Sie diese Karte mit einem Klick mit Ihrem Konto.',
-    es: 'Ya has iniciado sesión. Vincula esta tarjeta a tu cuenta con un clic.',
-    it: 'Hai già effettuato l\'accesso. Collega questa scheda al tuo account con un clic.'
+    ru: 'Вы уже вошли в аккаунт. Продолжите, чтобы заполнить карточку — она станет вашей только после сохранения.',
+    en: "You're already signed in. Continue to fill in the card — it becomes yours only once you save it.",
+    fr: 'Vous êtes déjà connecté. Continuez pour remplir la carte — elle ne sera à vous qu\'une fois enregistrée.',
+    de: 'Sie sind bereits angemeldet. Fahren Sie fort, um die Karte auszufüllen — sie gehört Ihnen erst nach dem Speichern.',
+    es: 'Ya has iniciado sesión. Continúa para completar la tarjeta — será tuya solo después de guardarla.',
+    it: 'Hai già effettuato l\'accesso. Continua per compilare la scheda — sarà tua solo dopo averla salvata.'
   },
   claimNotYouLink: {
     ru: 'Не вы? Выйти и зарегистрировать новый аккаунт',
@@ -231,8 +231,8 @@ const DICTIONARY = {
     it: 'Non sei tu? Esci e registra un nuovo account'
   },
   claimAttachButton: {
-    ru: 'Привязать карточку к моему аккаунту', en: 'Attach card to my account', fr: 'Associer la carte à mon compte',
-    de: 'Karte mit meinem Konto verknüpfen', es: 'Vincular tarjeta a mi cuenta', it: 'Collega la scheda al mio account'
+    ru: 'Продолжить настройку карточки', en: 'Continue setting up this card', fr: 'Continuer la configuration de la carte',
+    de: 'Mit der Karteneinrichtung fortfahren', es: 'Continuar configurando esta tarjeta', it: 'Continua a configurare questa scheda'
   },
   claimNameLabel: {
     ru: 'Имя', en: 'Full name', fr: 'Nom complet', de: 'Name', es: 'Nombre', it: 'Nome'
@@ -282,8 +282,8 @@ const DICTIONARY = {
     it: '⚠ Conserva questa password in un posto sicuro — non potrà essere recuperata in seguito.'
   },
   claimSubmit: {
-    ru: 'Активировать карточку', en: 'Activate card', fr: 'Activer la carte',
-    de: 'Karte aktivieren', es: 'Activar tarjeta', it: 'Attiva scheda'
+    ru: 'Создать аккаунт и продолжить', en: 'Create account and continue', fr: 'Créer un compte et continuer',
+    de: 'Konto erstellen und fortfahren', es: 'Crear cuenta y continuar', it: 'Crea account e continua'
   }
 };
 
