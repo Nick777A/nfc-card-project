@@ -44,31 +44,34 @@
       <div class="card">
         <p>Пока нет ни одной карточки. Нажмите «Новая карточка», чтобы создать первую — займёт несколько секунд.</p>
       </div>
-    <% } else { %>
+    <% } else {
+      function cardsTable(list, tableId) { %>
       <div class="card table-scroll" style="padding:0;">
-        <table class="cards-table" id="cards-table">
+        <table class="cards-table" id="<%= tableId %>">
           <thead>
             <tr>
               <th></th>
               <th>Название</th>
               <th>Тип</th>
-              <th>Ссылка / адрес</th>
+              <th>Ссылка</th>
               <th>Просмотры</th>
               <th>Статус</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <% cards.forEach(function(card) { %>
+            <% list.forEach(function(card) { %>
               <tr data-search="<%= [card.label, card.type, card.slug].join(' ').toLowerCase() %>">
                 <td><input type="checkbox" class="card-checkbox" value="<%= card.id %>" /></td>
                 <td><a href="/admin/cards/<%= card.id %>"><%= card.label %></a></td>
                 <td><span class="badge"><%= card.type %></span></td>
-                <td><%= base %>/u/<%= card.slug %></td>
+                <td><a href="/u/<%= card.slug %>" target="_blank">/u/<%= card.slug %></a></td>
                 <td><%= card.viewCount || 0 %></td>
                 <td>
                   <% if (card.active === false) { %>
                     <span class="badge badge-danger">пауза</span>
+                  <% } else if (card.claimable && !card.customerId) { %>
+                    <span class="badge">не активирована</span>
                   <% } else { %>
                     <span class="badge badge-success">активна</span>
                   <% } %>
@@ -82,6 +85,17 @@
           </tbody>
         </table>
       </div>
+    <% } %>
+
+      <h2 style="margin:28px 0 12px;">Созданы вручную (<%= manualCards.length %>)</h2>
+      <% if (manualCards.length === 0) { %>
+        <div class="card"><p class="hint">Нет карточек, созданных вручную.</p></div>
+      <% } else { cardsTable(manualCards, 'cards-table-manual'); } %>
+
+      <h2 style="margin:28px 0 12px;">Сток на продажу (<%= stockCards.length %>)</h2>
+      <% if (stockCards.length === 0) { %>
+        <div class="card"><p class="hint">Нет сгенерированного стока. Создать: «+ Сток для продажи» в меню сверху.</p></div>
+      <% } else { cardsTable(stockCards, 'cards-table-stock'); } %>
     <% } %>
   </div>
   <script src="/js/dashboard.js"></script>

@@ -52,6 +52,7 @@
           <div class="dl-field">
             <label for="password"><%= t('claimPasswordLabel') %></label>
             <input type="password" id="password" name="password" minlength="6" required />
+            <p class="dl-hint" style="color: var(--u-accent2, var(--teal));"><%= t('claimPasswordWarning') %></p>
           </div>
           <div class="dl-field">
             <label for="confirmPassword"><%= t('claimConfirmPasswordLabel') %></label>
@@ -59,38 +60,11 @@
           </div>
           <button type="submit" class="dl-btn primary block"><%= t('claimSubmit') %></button>
         </form>
-        <script>
-          (function () {
-            var tabs = document.querySelectorAll('.claim-method-tab');
-            var methodInput = document.getElementById('claim-method-input');
-            var emailField = document.querySelector('.claim-field-email');
-            var phoneField = document.querySelector('.claim-field-phone');
-            var emailInput = document.getElementById('email');
-            var phoneInput = document.getElementById('phone');
-            tabs.forEach(function (tab) {
-              tab.addEventListener('click', function () {
-                var method = tab.getAttribute('data-method');
-                tabs.forEach(function (t2) { t2.classList.toggle('active', t2 === tab); });
-                methodInput.value = method;
-                if (method === 'phone') {
-                  emailField.style.display = 'none';
-                  phoneField.style.display = '';
-                  emailInput.required = false;
-                  phoneInput.required = true;
-                } else {
-                  emailField.style.display = '';
-                  phoneField.style.display = 'none';
-                  emailInput.required = true;
-                  phoneInput.required = false;
-                }
-              });
-            });
-          })();
-        </script>
       <% } %>
     </div>
   </div>
 
   <script src="/js/lang-switcher.js"></script>
+  <script src="/js/claim-tabs.js"></script>
 </body>
 </html>

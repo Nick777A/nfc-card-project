@@ -261,6 +261,14 @@ const DICTIONARY = {
     es: 'Sin confirmación por SMS — simplemente crea una contraseña para acceder con este número.',
     it: 'Nessuna conferma via SMS — imposta semplicemente una password per accedere con questo numero.'
   },
+  claimPasswordWarning: {
+    ru: '⚠ Сохраните пароль в надёжном месте — восстановить его позже будет нельзя.',
+    en: "⚠ Save this password somewhere safe — it can't be recovered later.",
+    fr: "⚠ Enregistrez ce mot de passe en lieu sûr — il ne pourra pas être récupéré plus tard.",
+    de: '⚠ Bewahren Sie dieses Passwort sicher auf — es kann später nicht wiederhergestellt werden.',
+    es: '⚠ Guarda esta contraseña en un lugar seguro — no se podrá recuperar más adelante.',
+    it: '⚠ Conserva questa password in un posto sicuro — non potrà essere recuperata in seguito.'
+  },
   claimSubmit: {
     ru: 'Активировать карточку', en: 'Activate card', fr: 'Activer la carte',
     de: 'Karte aktivieren', es: 'Activar tarjeta', it: 'Attiva scheda'

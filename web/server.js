@@ -620,12 +620,14 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
 
 app.get('/admin', requireAuth, (req, res) => {
   const cards = db.listCards();
+  const manualCards = cards.filter((c) => !c.batchId);
+  const stockCards = cards.filter((c) => c.batchId);
   const stats = cards.reduce((acc, c) => {
     acc[c.type] = (acc[c.type] || 0) + 1;
     return acc;
   }, {});
   const usingDefaultPassword = bcrypt.compareSync('admin123', db.getAdmin().passwordHash);
-  res.render('dashboard', { cards, stats, base: baseUrl(req), usingDefaultPassword });
+  res.render('dashboard', { cards, manualCards, stockCards, stats, base: baseUrl(req), usingDefaultPassword });
 });
 
 // ---------- Admin: Digilama orders ----------
@@ -838,7 +840,7 @@ app.post('/admin/cards/stock', requireAuth, (req, res) => {
       id: crypto.randomUUID(),
       slug,
       type: 'profile',
-      label: 'Непривязанная карточка (сток)',
+      label: slug.toUpperCase(),
       createdAt: Date.now(),
       viewCount: 0,
       lastViewedAt: null,
@@ -1237,7 +1239,7 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
   if (existingCustomerId) {
     const customer = db.getCustomerById(existingCustomerId);
     if (!customer) return render('Сессия истекла, войдите заново');
-    db.updateCard(card.id, { customerId: customer.id, claimable: false, label: customer.contactName || customer.company || card.label });
+    db.updateCard(card.id, { customerId: customer.id, claimable: false, label: `${card.slug.toUpperCase()} — ${customer.contactName || customer.company || 'Card'}` });
     return res.redirect(`/my/cards/${card.id}/edit`);
   }
 
@@ -1282,7 +1284,7 @@ app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
     db.addCustomer(customer);
   }
 
-  db.updateCard(card.id, { customerId: customer.id, claimable: false, label: customer.contactName || customer.company || card.label });
+  db.updateCard(card.id, { customerId: customer.id, claimable: false, label: `${card.slug.toUpperCase()} — ${customer.contactName || customer.company || 'Card'}` });
 
   res.cookie(CUSTOMER_AUTH_COOKIE, customer.id, {
     signed: true,
