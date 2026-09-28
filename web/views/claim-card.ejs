@@ -33,6 +33,10 @@
         <form method="post" action="/u/<%= slug %>/claim">
           <button type="submit" class="dl-btn primary block"><%= t('claimAttachButton') %></button>
         </form>
+        <form method="post" action="/customer/logout" style="margin-top:10px; text-align:center;">
+          <input type="hidden" name="next" value="/u/<%= slug %>" />
+          <button type="submit" style="background:none; border:none; color:var(--muted); font:inherit; font-size:13px; cursor:pointer; text-decoration:underline;"><%= t('claimNotYouLink') %></button>
+        </form>
       <% } else { %>
         <div class="dl-tabs" style="margin:0 0 20px;">
           <button type="button" class="dl-tab claim-method-tab <%= method !== 'phone' ? 'active' : '' %>" data-method="email"><%= t('claimMethodEmail') %></button>
@@ -71,5 +75,6 @@
 
   <script src="/js/lang-switcher.js"></script>
   <script src="/js/claim-tabs.js"></script>
+  <script src="/js/remember-login.js"></script>
 </body>
 </html>

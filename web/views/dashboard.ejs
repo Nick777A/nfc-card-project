@@ -79,6 +79,14 @@
                 <td class="row" style="gap:8px;">
                   <a href="/admin/cards/<%= card.id %>">Открыть</a>
                   <a href="/admin/cards/<%= card.id %>/edit">Изменить</a>
+                  <% if (card.batchId && card.customerId) { %>
+                    <form method="post" action="/admin/cards/<%= card.id %>/unclaim" class="inline-form" data-confirm="Сбросить карточку? Она снова станет непривязанной и её можно будет активировать заново — текущие данные владельца будут очищены.">
+                      <button type="submit" class="link-button">Сбросить</button>
+                    </form>
+                  <% } %>
+                  <form method="post" action="/admin/cards/<%= card.id %>/delete" class="inline-form" data-confirm="Удалить эту карточку? Она переместится в корзину на 30 дней.">
+                    <button type="submit" class="link-button" style="color:var(--danger, #ff6b6b);">Удалить</button>
+                  </form>
                 </td>
               </tr>
             <% }) %>

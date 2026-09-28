@@ -560,7 +560,8 @@ app.post('/customer/login', loginLimiter, loginSlowDown, (req, res) => {
 
 app.post('/customer/logout', (req, res) => {
   res.clearCookie(CUSTOMER_AUTH_COOKIE);
-  res.redirect('/customer/login');
+  const next = (req.body && req.body.next) || '';
+  res.redirect(next.startsWith('/') ? next : '/customer/login');
 });
 
 app.get('/my', requireCustomerAuth, (req, res) => {
@@ -915,6 +916,24 @@ app.post('/admin/cards/:id/toggle-active', requireAuth, (req, res) => {
 app.post('/admin/cards/:id/delete', requireAuth, (req, res) => {
   db.deleteCard(req.params.id);
   res.redirect('/admin/trash');
+});
+
+// Releases a stock card that was claimed (fully or partway) back to a blank,
+// claimable state — e.g. when a buyer abandoned registration halfway through
+// or claimed the wrong card by mistake. The customer account itself, if one
+// was created, is left untouched; only this card's link to it is cleared.
+app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card || !card.batchId) return res.status(404).send('Карточка не найдена или не является карточкой стока');
+  db.updateCard(card.id, {
+    customerId: null,
+    claimable: true,
+    label: card.slug.toUpperCase(),
+    fullName: '', tagline: '', photoUrl: '', bannerUrl: '', galleryUrls: [],
+    phone: '', email: '', company: '', jobTitle: '', links: [],
+    scheduleText: '', address: '', website: '', theme: null
+  });
+  res.redirect('/admin');
 });
 
 // ---------- Trash: a delete moves a card here for 30 days before it's gone

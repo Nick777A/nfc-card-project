@@ -222,6 +222,14 @@ const DICTIONARY = {
     es: 'Ya has iniciado sesión. Vincula esta tarjeta a tu cuenta con un clic.',
     it: 'Hai già effettuato l\'accesso. Collega questa scheda al tuo account con un clic.'
   },
+  claimNotYouLink: {
+    ru: 'Не вы? Выйти и зарегистрировать новый аккаунт',
+    en: 'Not you? Log out and register a new account',
+    fr: 'Ce n\'est pas vous ? Déconnectez-vous et créez un nouveau compte',
+    de: 'Nicht Sie? Abmelden und ein neues Konto registrieren',
+    es: '¿No eres tú? Cierra sesión y registra una cuenta nueva',
+    it: 'Non sei tu? Esci e registra un nuovo account'
+  },
   claimAttachButton: {
     ru: 'Привязать карточку к моему аккаунту', en: 'Attach card to my account', fr: 'Associer la carte à mon compte',
     de: 'Karte mit meinem Konto verknüpfen', es: 'Vincular tarjeta a mi cuenta', it: 'Collega la scheda al mio account'

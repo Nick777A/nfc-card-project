@@ -1,6 +1,6 @@
 (function () {
   const input = document.getElementById('search-input');
-  const rows = document.querySelectorAll('#cards-table tbody tr');
+  const rows = document.querySelectorAll('.cards-table tbody tr');
 
   if (input) {
     input.addEventListener('input', () => {
