@@ -197,6 +197,55 @@ const DICTIONARY = {
   privacyBackLink: {
     ru: '← На главную', en: '← Back to home', fr: "← Retour à l'accueil", de: '← Zurück zur Startseite',
     es: '← Volver al inicio', it: '← Torna alla home'
+  },
+  claimTitle: {
+    ru: 'Активируйте свою карточку', en: 'Activate your card', fr: 'Activez votre carte',
+    de: 'Aktivieren Sie Ihre Karte', es: 'Activa tu tarjeta', it: 'Attiva la tua scheda'
+  },
+  claimHint: {
+    ru: 'Эта NFC-карта ещё никому не принадлежит. Создайте аккаунт (или войдите в существующий), и она навсегда станет вашей — заполнить её можно будет в любой момент.',
+    en: "This NFC card doesn't belong to anyone yet. Create an account (or sign in to an existing one) and it will become yours for good — you can fill it in any time.",
+    fr: "Cette carte NFC n'appartient encore à personne. Créez un compte (ou connectez-vous à un compte existant) et elle deviendra définitivement la vôtre — vous pourrez la remplir à tout moment.",
+    de: 'Diese NFC-Karte gehört noch niemandem. Erstellen Sie ein Konto (oder melden Sie sich bei einem bestehenden an), und sie gehört dauerhaft Ihnen — Sie können sie jederzeit ausfüllen.',
+    es: 'Esta tarjeta NFC todavía no pertenece a nadie. Crea una cuenta (o inicia sesión en una existente) y será tuya para siempre — podrás completarla en cualquier momento.',
+    it: 'Questa scheda NFC non appartiene ancora a nessuno. Crea un account (o accedi a uno esistente) e diventerà tua per sempre — potrai compilarla in qualsiasi momento.'
+  },
+  claimAlreadyLoggedInHint: {
+    ru: 'Вы уже вошли в аккаунт. Привяжите эту карточку к нему в один клик.',
+    en: "You're already signed in. Attach this card to your account in one click.",
+    fr: 'Vous êtes déjà connecté. Associez cette carte à votre compte en un clic.',
+    de: 'Sie sind bereits angemeldet. Verknüpfen Sie diese Karte mit einem Klick mit Ihrem Konto.',
+    es: 'Ya has iniciado sesión. Vincula esta tarjeta a tu cuenta con un clic.',
+    it: 'Hai già effettuato l\'accesso. Collega questa scheda al tuo account con un clic.'
+  },
+  claimAttachButton: {
+    ru: 'Привязать карточку к моему аккаунту', en: 'Attach card to my account', fr: 'Associer la carte à mon compte',
+    de: 'Karte mit meinem Konto verknüpfen', es: 'Vincular tarjeta a mi cuenta', it: 'Collega la scheda al mio account'
+  },
+  claimNameLabel: {
+    ru: 'Имя', en: 'Full name', fr: 'Nom complet', de: 'Name', es: 'Nombre', it: 'Nome'
+  },
+  claimEmailLabel: {
+    ru: 'Email', en: 'Email', fr: 'Email', de: 'E-Mail', es: 'Correo', it: 'Email'
+  },
+  claimPasswordLabel: {
+    ru: 'Пароль', en: 'Password', fr: 'Mot de passe', de: 'Passwort', es: 'Contraseña', it: 'Password'
+  },
+  claimConfirmPasswordLabel: {
+    ru: 'Повторите пароль', en: 'Confirm password', fr: 'Confirmez le mot de passe',
+    de: 'Passwort bestätigen', es: 'Confirma la contraseña', it: 'Conferma password'
+  },
+  claimEmailHint: {
+    ru: 'Если у вас уже есть аккаунт Digilama, просто введите его email и пароль — карточка добавится к нему.',
+    en: 'If you already have a Digilama account, just enter its email and password — the card will be added to it.',
+    fr: 'Si vous avez déjà un compte Digilama, saisissez simplement son email et son mot de passe — la carte y sera ajoutée.',
+    de: 'Wenn Sie bereits ein Digilama-Konto haben, geben Sie einfach dessen E-Mail und Passwort ein — die Karte wird hinzugefügt.',
+    es: 'Si ya tienes una cuenta de Digilama, introduce su email y contraseña — la tarjeta se añadirá a ella.',
+    it: 'Se hai già un account Digilama, inserisci semplicemente la sua email e password — la scheda verrà aggiunta.'
+  },
+  claimSubmit: {
+    ru: 'Активировать карточку', en: 'Activate card', fr: 'Activer la carte',
+    de: 'Karte aktivieren', es: 'Activar tarjeta', it: 'Attiva scheda'
   }
 };
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+  <title><%= t('claimTitle') %> — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+  <nav class="dl-nav">
+    <a class="dl-logo" href="/">digilama</a>
+    <div class="dl-nav-links">
+      <select id="lang-select" aria-label="Language" style="background:transparent;color:inherit;border:1px solid var(--border);border-radius:8px;padding:4px 8px;">
+        <% languages.forEach(function(l) { %>
+          <option value="<%= l.code %>" <%= l.code === lang ? 'selected' : '' %>><%= l.label %></option>
+        <% }) %>
+      </select>
+    </div>
+  </nav>
+
+  <div class="dl-container narrow" style="padding-bottom:60px;">
+    <div class="dl-card">
+      <h1 style="margin-top:0;"><%= t('claimTitle') %></h1>
+      <p class="dl-hint" style="font-size:14px; line-height:1.6; margin-bottom:22px;"><%= t('claimHint') %></p>
+
+      <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
+
+      <% if (loggedIn) { %>
+        <p class="dl-hint" style="margin-bottom:16px;"><%= t('claimAlreadyLoggedInHint') %></p>
+        <form method="post" action="/u/<%= slug %>/claim">
+          <button type="submit" class="dl-btn primary block"><%= t('claimAttachButton') %></button>
+        </form>
+      <% } else { %>
+        <form method="post" action="/u/<%= slug %>/claim">
+          <div class="dl-field">
+            <label for="contactName"><%= t('claimNameLabel') %></label>
+            <input type="text" id="contactName" name="contactName" />
+          </div>
+          <div class="dl-field">
+            <label for="email"><%= t('claimEmailLabel') %></label>
+            <input type="email" id="email" name="email" required />
+            <p class="dl-hint"><%= t('claimEmailHint') %></p>
+          </div>
+          <div class="dl-field">
+            <label for="password"><%= t('claimPasswordLabel') %></label>
+            <input type="password" id="password" name="password" minlength="6" required />
+          </div>
+          <div class="dl-field">
+            <label for="confirmPassword"><%= t('claimConfirmPasswordLabel') %></label>
+            <input type="password" id="confirmPassword" name="confirmPassword" minlength="6" />
+          </div>
+          <button type="submit" class="dl-btn primary block"><%= t('claimSubmit') %></button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <script src="/js/lang-switcher.js"></script>
+</body>
+</html>

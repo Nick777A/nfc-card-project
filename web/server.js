@@ -785,6 +785,68 @@ app.post('/admin/cards/bulk', requireAuth, memoryUpload.single('csvFile'), (req,
   });
 });
 
+app.get('/admin/cards/stock', requireAuth, (req, res) => {
+  res.render('stock-new', { error: null });
+});
+
+app.post('/admin/cards/stock', requireAuth, (req, res) => {
+  const quantity = parseInt(req.body.quantity, 10);
+  if (!quantity || quantity < 1 || quantity > 20000) {
+    return res.render('stock-new', { error: 'Введите количество от 1 до 20000' });
+  }
+
+  const batchId = crypto.randomUUID();
+  for (let i = 0; i < quantity; i += 1) {
+    let slug = generateSlug();
+    while (db.slugTaken(slug)) slug = generateSlug();
+    db.addCard({
+      id: crypto.randomUUID(),
+      slug,
+      type: 'profile',
+      label: 'Непривязанная карточка (сток)',
+      createdAt: Date.now(),
+      viewCount: 0,
+      lastViewedAt: null,
+      active: true,
+      claimable: true,
+      batchId,
+      customerId: null,
+      fullName: '',
+      photoUrl: '',
+      phone: '',
+      email: '',
+      company: '',
+      jobTitle: '',
+      links: [],
+      targetUrl: '',
+      imageUrl: '',
+      wifiSsid: '',
+      wifiPassword: '',
+      wifiEncryption: 'WPA',
+      customPayload: ''
+    });
+  }
+
+  res.redirect(`/admin/cards/stock/${batchId}`);
+});
+
+app.get('/admin/cards/stock/:batchId.csv', requireAuth, (req, res) => {
+  const cards = db.listCards().filter((c) => c.batchId === req.params.batchId);
+  if (!cards.length) return res.status(404).send('Партия не найдена');
+  const lines = ['slug,url'];
+  cards.forEach((c) => lines.push(`${c.slug},${baseUrl(req)}/u/${c.slug}`));
+  res.set('Content-Type', 'text/csv; charset=utf-8');
+  res.set('Content-Disposition', `attachment; filename="stock-${req.params.batchId}.csv"`);
+  res.send(lines.join('\n'));
+});
+
+app.get('/admin/cards/stock/:batchId', requireAuth, (req, res) => {
+  const cards = db.listCards().filter((c) => c.batchId === req.params.batchId);
+  if (!cards.length) return res.status(404).send('Партия не найдена');
+  const rows = cards.map((c) => ({ slug: c.slug, url: `${baseUrl(req)}/u/${c.slug}`, claimed: !c.claimable }));
+  res.render('stock-result', { batchId: req.params.batchId, rows, total: rows.length });
+});
+
 app.get('/admin/cards/:id', requireAuth, async (req, res) => {
   const card = db.getCardById(req.params.id);
   if (!card) return res.status(404).send('Карточка не найдена');
@@ -1057,6 +1119,15 @@ app.get('/u/:slug', async (req, res) => {
     return res.status(410).render('disabled', { t, lang, languages: LANGUAGES });
   }
 
+  if (card.claimable && !card.customerId) {
+    return res.render('claim-card', {
+      t, lang, languages: LANGUAGES,
+      slug: card.slug,
+      loggedIn: !!currentCustomerId(req),
+      error: null
+    });
+  }
+
   switch (card.type) {
     case 'url':
       if (card.targetUrl) return res.redirect(card.targetUrl);
@@ -1107,6 +1178,67 @@ app.get('/u/:slug', async (req, res) => {
       });
     }
   }
+});
+
+app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {
+  const lang = resolveLang(req, res);
+  const t = (key) => translate(lang, key);
+  const card = db.getCardBySlug(req.params.slug);
+  if (!card || !card.claimable || card.customerId) {
+    return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
+  }
+
+  const render = (error) => res.render('claim-card', {
+    t, lang, languages: LANGUAGES, slug: card.slug, loggedIn: !!currentCustomerId(req), error
+  });
+
+  // Already-signed-in customer just needs one click to attach the card.
+  const existingCustomerId = currentCustomerId(req);
+  if (existingCustomerId) {
+    const customer = db.getCustomerById(existingCustomerId);
+    if (!customer) return render('Сессия истекла, войдите заново');
+    db.updateCard(card.id, { customerId: customer.id, claimable: false, label: customer.contactName || customer.company || card.label });
+    return res.redirect(`/my/cards/${card.id}/edit`);
+  }
+
+  const email = (req.body.email || '').trim().toLowerCase();
+  const password = req.body.password || '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return render('Введите корректный email');
+  if (password.length < 6) return render('Пароль должен быть не короче 6 символов');
+
+  const existing = db.getCustomerByEmail(email);
+  let customer;
+  if (existing) {
+    if (!bcrypt.compareSync(password, existing.passwordHash)) {
+      return render('Аккаунт с таким email уже есть — пароль не подошёл. Введите правильный пароль.');
+    }
+    customer = existing;
+  } else {
+    const contactName = (req.body.contactName || '').trim();
+    if (!contactName) return render('Введите имя');
+    if (password !== req.body.confirmPassword) return render('Пароли не совпадают');
+    customer = {
+      id: crypto.randomUUID(),
+      email,
+      passwordHash: bcrypt.hashSync(password, 10),
+      contactName,
+      phone: '',
+      company: '',
+      createdAt: Date.now()
+    };
+    db.addCustomer(customer);
+  }
+
+  db.updateCard(card.id, { customerId: customer.id, claimable: false, label: customer.contactName || customer.company || card.label });
+
+  res.cookie(CUSTOMER_AUTH_COOKIE, customer.id, {
+    signed: true,
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'lax',
+    maxAge: CUSTOMER_AUTH_COOKIE_MAX_AGE
+  });
+  res.redirect(`/my/cards/${card.id}/edit`);
 });
 
 app.get('/u/:slug/vcard', (req, res) => {

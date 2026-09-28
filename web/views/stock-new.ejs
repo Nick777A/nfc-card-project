@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <title>Партия для продажи — NFC Card Admin</title>
+  <%- include('partials/head') %>
+</head>
+<body>
+  <%- include('partials/admin-nav') %>
+  <div class="container">
+    <div class="card">
+      <h1>Сгенерировать сток непривязанных карточек</h1>
+      <p class="hint" style="margin-top:-8px; margin-bottom:20px;">
+        Создаёт указанное количество пустых карточек с уникальными ссылками — их можно заранее нанести
+        на физические NFC-карты/QR-коды и продавать. Пока карточку не купили, при переходе по ссылке
+        покупатель увидит страницу «Активировать карточку», где сам создаст аккаунт и заполнит свои данные —
+        без вашего участия. После активации та же самая ссылка навсегда открывает уже его карточку.
+      </p>
+
+      <% if (error) { %><div class="error-box"><%= error %></div><% } %>
+
+      <form method="post" action="/admin/cards/stock">
+        <div class="field">
+          <label for="quantity">Количество карточек</label>
+          <input type="number" id="quantity" name="quantity" min="1" max="20000" value="100" required />
+        </div>
+        <button type="submit" class="btn">Сгенерировать</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
