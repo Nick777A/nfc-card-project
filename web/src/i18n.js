@@ -198,6 +198,10 @@ const DICTIONARY = {
     ru: '← На главную', en: '← Back to home', fr: "← Retour à l'accueil", de: '← Zurück zur Startseite',
     es: '← Volver al inicio', it: '← Torna alla home'
   },
+  claimCardIdLabel: {
+    ru: 'Номер карты', en: 'Card ID', fr: 'Numéro de carte',
+    de: 'Kartennummer', es: 'Número de tarjeta', it: 'Numero scheda'
+  },
   claimTitle: {
     ru: 'Активируйте свою карточку', en: 'Activate your card', fr: 'Activez votre carte',
     de: 'Aktivieren Sie Ihre Karte', es: 'Activa tu tarjeta', it: 'Attiva la tua scheda'

@@ -19,7 +19,12 @@
   <div class="dl-container narrow" style="padding-bottom:60px;">
     <div class="dl-card">
       <h1 style="margin-top:0;"><%= t('claimTitle') %></h1>
-      <p class="dl-hint" style="font-size:14px; line-height:1.6; margin-bottom:22px;"><%= t('claimHint') %></p>
+      <p class="dl-hint" style="font-size:14px; line-height:1.6; margin-bottom:8px;"><%= t('claimHint') %></p>
+      <p style="margin:0 0 22px;">
+        <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; color:var(--muted); background:var(--bg-elevated); border:1px solid var(--border); border-radius:999px; padding:5px 12px;">
+          <%= t('claimCardIdLabel') %>: <span style="color:var(--text); font-family:monospace; letter-spacing:1px;"><%= slug.toUpperCase() %></span>
+        </span>
+      </p>
 
       <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
 
