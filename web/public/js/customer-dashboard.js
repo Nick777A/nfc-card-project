@@ -4,8 +4,12 @@
       var url = btn.getAttribute('data-url');
       var original = btn.textContent;
       function done(ok) {
-        btn.textContent = ok ? 'Copied!' : 'Copy failed';
-        setTimeout(function () { btn.textContent = original; }, 1500);
+        btn.textContent = ok ? '✓ Copied!' : 'Copy failed';
+        btn.classList.toggle('is-copied', ok);
+        setTimeout(function () {
+          btn.textContent = original;
+          btn.classList.remove('is-copied');
+        }, 1500);
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });

@@ -268,8 +268,10 @@ body.digilama {
   color: var(--text);
   border: 1px solid var(--border-strong);
 }
-.dl-btn.secondary:hover { border-color: var(--teal); color: var(--teal); }
+.dl-btn.secondary:hover { border-color: var(--teal); color: var(--teal); transform: translateY(-2px); }
 .dl-btn.block { width: 100%; }
+.dl-btn:active { transform: scale(0.96) !important; transition-duration: 0.08s; }
+@media (prefers-reduced-motion: reduce) { .dl-btn, .dl-btn:hover, .dl-btn:active { transform: none !important; } }
 
 .dl-section { padding: 50px 20px; }
 .dl-section h2 { font-size: 30px; font-weight: 800; text-align: center; margin: 0 0 8px; letter-spacing: -0.5px; }
@@ -357,7 +359,13 @@ body.digilama {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 32px;
+  animation: dlCardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+@keyframes dlCardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .dl-card { animation: none; } }
 .dl-field { margin-bottom: 18px; }
 .dl-field label { display: block; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 7px; }
 .dl-field input[type="text"],
@@ -376,9 +384,11 @@ body.digilama {
   font-size: 15px;
   font-family: inherit;
 }
+.dl-field input, .dl-field select, .dl-field textarea { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
 .dl-field input:focus, .dl-field select:focus, .dl-field textarea:focus {
   outline: none;
   border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(255, 46, 136, 0.15);
 }
 .dl-field textarea { min-height: 90px; resize: vertical; }
 .dl-row { display: flex; gap: 14px; }
@@ -833,9 +843,13 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 18px;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  opacity: 0;
+  animation: dlCardIn 0.4s ease both;
+  animation-delay: calc(var(--i, 0) * 60ms);
 }
-.dl-mycard-tile:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.dl-mycard-tile:hover { border-color: var(--border-strong); transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35); }
+@media (prefers-reduced-motion: reduce) { .dl-mycard-tile { animation: none; opacity: 1; } }
 .dl-mycard-top { display: flex; align-items: center; gap: 12px; }
 .dl-mycard-avatar {
   flex: none;
@@ -852,6 +866,12 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
 .dl-mycard-meta { margin: 12px 0 14px; font-size: 12px; color: var(--faint); }
 .dl-mycard-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .dl-mycard-actions .dl-btn { flex: 1; text-align: center; white-space: nowrap; }
+.dl-mycard-actions .dl-btn.is-copied { border-color: var(--teal); color: var(--teal); animation: dlCopyPulse 0.4s ease; }
+@keyframes dlCopyPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
 
 /* ---- Profile card: banner, avatar overlap, contact row, tabs ---- */
 .dl-banner {
@@ -911,7 +931,12 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
 .dl-tab:hover { color: var(--text); }
 
 .dl-tab-panel { display: none; text-align: left; }
-.dl-tab-panel.active { display: block; }
+.dl-tab-panel.active { display: block; animation: dlTabFadeIn 0.3s ease both; }
+@keyframes dlTabFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .dl-tab-panel.active { animation: none; } }
 
 .dl-link-section { margin-bottom: 18px; }
 .dl-link-section:last-child { margin-bottom: 0; }

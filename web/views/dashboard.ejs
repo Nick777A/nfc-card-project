@@ -23,6 +23,14 @@
     </div>
 
     <% if (cards.length > 0) { %>
+      <div class="stats-overview">
+        <div class="stat-tile" style="--i:0;"><strong><%= overview.total %></strong><span>всего карточек</span></div>
+        <div class="stat-tile success" style="--i:1;"><strong><%= overview.active %></strong><span>активных</span></div>
+        <div class="stat-tile warn" style="--i:2;"><strong><%= overview.unclaimed %></strong><span>ждут активации</span></div>
+        <div class="stat-tile danger" style="--i:3;"><strong><%= overview.paused %></strong><span>на паузе</span></div>
+        <div class="stat-tile" style="--i:4;"><strong><%= overview.totalViews %></strong><span>всего касаний</span></div>
+      </div>
+
       <div class="row" style="margin-bottom: 16px; justify-content: space-between;">
         <div class="row">
           <% Object.entries(stats).forEach(function([type, count]) { %>

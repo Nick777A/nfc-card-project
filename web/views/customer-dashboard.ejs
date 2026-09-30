@@ -36,9 +36,9 @@
       </div>
     <% } else { %>
       <div class="dl-mycards-grid">
-        <% cards.forEach(function(card) { %>
+        <% cards.forEach(function(card, i) { %>
           <% var t1 = (card.theme && card.theme.accentColor1) || '#ff2e88'; var t2 = (card.theme && card.theme.accentColor2) || '#00e6c3'; %>
-          <div class="dl-mycard-tile">
+          <div class="dl-mycard-tile" style="--i:<%= i %>;">
             <div class="dl-mycard-top">
               <div class="dl-mycard-avatar" style="background:linear-gradient(135deg, <%= t1 %>, <%= t2 %>);">
                 <% if (card.photoUrl) { %>

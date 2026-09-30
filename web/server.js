@@ -651,8 +651,15 @@ app.get('/admin', requireAuth, (req, res) => {
     acc[c.type] = (acc[c.type] || 0) + 1;
     return acc;
   }, {});
+  const overview = {
+    total: cards.length,
+    active: cards.filter((c) => c.active !== false && !(c.claimable && !c.customerId)).length,
+    paused: cards.filter((c) => c.active === false).length,
+    unclaimed: cards.filter((c) => c.claimable && !c.customerId).length,
+    totalViews: cards.reduce((sum, c) => sum + (c.viewCount || 0), 0)
+  };
   const usingDefaultPassword = bcrypt.compareSync('admin123', db.getAdmin().passwordHash);
-  res.render('dashboard', { cards, manualCards, stockCards, stats, base: baseUrl(req), usingDefaultPassword });
+  res.render('dashboard', { cards, manualCards, stockCards, stats, overview, base: baseUrl(req), usingDefaultPassword });
 });
 
 // ---------- Admin: Digilama orders ----------
