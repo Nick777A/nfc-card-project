@@ -204,10 +204,12 @@ function generateRecoveryCode() {
  * which silently breaks the whole card ("Card not found"). Adding the
  * scheme when it's missing is what a normal user expects to happen.
  */
+/** Only ever hands back an http(s) URL (or empty) — rejects javascript:/data: and any other scheme outright. */
 function normalizeExternalUrl(url) {
   const trimmed = (url || '').trim();
   if (!trimmed) return '';
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return ''; // some other explicit scheme — refuse rather than guess
   return `https://${trimmed}`;
 }
 

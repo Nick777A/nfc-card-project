@@ -26,7 +26,7 @@
 
     <div class="dl-kind-grid">
       <% kinds.forEach(function(k, i) { %>
-        <form method="post" action="/my/cards/<%= card.id %>/kind" class="dl-kind-card-form">
+        <form method="post" action="/my/cards/<%= card.id %>/kind" class="dl-kind-card-form" data-confirm="Make this a &quot;<%= k.label %>&quot; card? This can't be changed later.">
           <input type="hidden" name="kind" value="<%= k.id %>" />
           <button type="submit" class="dl-kind-card" style="--i:<%= i %>;">
             <span class="dl-kind-icon dl-kind-icon-<%= k.icon %>">
@@ -54,5 +54,6 @@
       <% }) %>
     </div>
   </div>
+  <script src="/js/confirm-forms.js"></script>
 </body>
 </html>
