@@ -1117,7 +1117,7 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
     fullName: '', tagline: '', photoUrl: '', bannerUrl: '', galleryUrls: [],
     phone: '', email: '', company: '', jobTitle: '', links: [],
     scheduleText: '', address: '', website: '', theme: null,
-    reviewMode: 'external', reviewGoogleUrl: '',
+    reviewMode: 'external', reviewGoogleUrl: '', reviewFeedback: [],
     menuCategories: [], portfolioItems: [], infoBody: '',
     bookingAvailability: {}, bookingDurationMin: 30, bookingWindowDays: 14, bookings: []
   });
@@ -1126,10 +1126,6 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
 
 // ---------- Trash: a delete moves a card here for 30 days before it's gone
 // for good, so an accidental click doesn't destroy data outright. ----------
-
-app.get('/admin/feedback', requireAuth, (req, res) => {
-  res.render('admin-feedback', { entries: db.listFeedback() });
-});
 
 app.get('/admin/trash', requireAuth, (req, res) => {
   res.render('trash', { cards: db.listTrash(), base: baseUrl(req) });
@@ -1494,15 +1490,13 @@ app.post('/u/:slug/feedback', (req, res) => {
   }
   const comment = (req.body.comment || '').trim().slice(0, 2000);
   if (!comment) return res.redirect(`/u/${card.slug}`);
-  db.addFeedback({
+  const entry = {
     id: crypto.randomUUID(),
-    cardId: card.id,
-    cardSlug: card.slug,
-    cardLabel: card.fullName || card.label,
     name: (req.body.name || '').trim().slice(0, 200),
     comment,
     createdAt: Date.now()
-  });
+  };
+  db.updateCard(card.id, { reviewFeedback: [entry, ...(card.reviewFeedback || [])].slice(0, 500) });
   res.redirect(`/u/${card.slug}?sent=1`);
 });
 

@@ -1207,3 +1207,8 @@ a.dl-portfolio-item:hover { border-color: var(--u-accent1, var(--pink)); transfo
 .dl-booking-list-when { margin: 0; font-weight: 700; font-size: 14px; }
 
 .dl-mono-textarea { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; line-height: 1.6; }
+
+/* ---- Feedback received list (edit-kind-review.ejs) ---- */
+.dl-feedback-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.dl-feedback-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.dl-feedback-comment { margin: 0; font-size: 14px; }
