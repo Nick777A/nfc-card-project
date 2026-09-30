@@ -1,7 +1,26 @@
 <%- include('partials/kind-header') %>
 
       <div class="dl-profile-item" style="--d:4">
-        <% if (card.reviewGoogleUrl) { %>
+        <% if (card.reviewMode === 'internal') { %>
+          <% if (sent) { %>
+            <div class="dl-review-thanks">
+              <div class="dl-review-thanks-icon">✓</div>
+              <p><%= t('feedbackThanks') %></p>
+            </div>
+          <% } else { %>
+            <form method="post" action="/u/<%= card.slug %>/feedback" style="text-align:left;">
+              <div class="dl-field">
+                <label for="fb-name"><%= t('feedbackNameLabel') %></label>
+                <input type="text" id="fb-name" name="name" />
+              </div>
+              <div class="dl-field">
+                <label for="fb-comment"><%= t('feedbackCommentLabel') %></label>
+                <textarea id="fb-comment" name="comment" required></textarea>
+              </div>
+              <button type="submit" class="dl-btn primary block"><%= t('feedbackSubmitButton') %></button>
+            </form>
+          <% } %>
+        <% } else if (card.reviewGoogleUrl) { %>
           <a class="dl-btn primary block" href="<%= card.reviewGoogleUrl %>" target="_blank" rel="noopener">
             <%= t('reviewLeaveButton') %> ↗
           </a>

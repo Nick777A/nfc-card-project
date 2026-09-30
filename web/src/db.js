@@ -27,7 +27,8 @@ function defaultData() {
     },
     cards: [],
     customers: [],
-    orders: []
+    orders: [],
+    feedback: []
   };
 }
 
@@ -56,6 +57,7 @@ let state = loadFromFile() || defaultData();
 function applyDefaults(s) {
   if (!Array.isArray(s.customers)) s.customers = [];
   if (!Array.isArray(s.orders)) s.orders = [];
+  if (!Array.isArray(s.feedback)) s.feedback = [];
   if (!Number.isInteger(s.stockCounter)) s.stockCounter = 0;
   return s;
 }
@@ -285,5 +287,16 @@ module.exports = {
   /** Cards belonging to a customer's account (linked by an admin after an order is fulfilled). */
   listCardsByCustomer(customerId) {
     return state.cards.filter((c) => c.customerId === customerId && !c.deletedAt);
+  },
+
+  // ---------- Platform-wide feedback (cards set to collect it "in the app") ----------
+
+  addFeedback(entry) {
+    state.feedback.push(entry);
+    persist();
+    return entry;
+  },
+  listFeedback() {
+    return [...state.feedback].sort((a, b) => b.createdAt - a.createdAt);
   }
 };

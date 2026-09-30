@@ -7,21 +7,36 @@
 <body class="digilama">
 <%- include('partials/edit-header') %>
 
-        <h2 class="dl-form-section-title"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8Z"/></svg> Google Reviews</h2>
+        <h2 class="dl-form-section-title"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8Z"/></svg> Reviews & Feedback</h2>
         <div class="dl-field">
           <label for="fullName">Business name</label>
           <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
-        </div>
-        <div class="dl-field">
-          <label for="reviewGoogleUrl">Google review link</label>
-          <input type="text" id="reviewGoogleUrl" name="reviewGoogleUrl" placeholder="https://g.page/r/.../review" value="<%= card.reviewGoogleUrl || '' %>" />
-          <p class="dl-hint">Find yours in Google Business Profile → "Ask for reviews" → copy link. Visitors tap one button and go straight there.</p>
         </div>
         <div class="dl-field">
           <label for="photo">Logo</label>
           <input type="file" id="photo" name="photo" accept="image/*" />
         </div>
 
+        <div class="dl-field">
+          <label>Where should feedback go?</label>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px;">
+            <label style="display:flex; align-items:flex-start; gap:10px; font-weight:400; cursor:pointer;">
+              <input type="radio" name="reviewMode" value="external" id="reviewModeExternal" style="width:auto; margin-top:3px;" <%= card.reviewMode !== 'internal' ? 'checked' : '' %> />
+              <span><strong>Send it to another site</strong><br /><span class="dl-hint" style="margin:2px 0 0;">e.g. your Google review page — visitors tap one button and go straight there.</span></span>
+            </label>
+            <label style="display:flex; align-items:flex-start; gap:10px; font-weight:400; cursor:pointer;">
+              <input type="radio" name="reviewMode" value="internal" id="reviewModeInternal" style="width:auto; margin-top:3px;" <%= card.reviewMode === 'internal' ? 'checked' : '' %> />
+              <span><strong>Keep it inside Digilama</strong><br /><span class="dl-hint" style="margin:2px 0 0;">Visitors write feedback right on the card — it's sent to our team, not published anywhere.</span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="dl-field" id="reviewUrlField" style="<%= card.reviewMode === 'internal' ? 'display:none;' : '' %>">
+          <label for="reviewGoogleUrl">Link (Google review page, or anywhere else)</label>
+          <input type="text" id="reviewGoogleUrl" name="reviewGoogleUrl" placeholder="https://g.page/r/.../review" value="<%= card.reviewGoogleUrl || '' %>" />
+          <p class="dl-hint">Find your Google link in Google Business Profile → "Ask for reviews" → copy link.</p>
+        </div>
+
 <%- include('partials/appearance-editor', { card: card, kindMeta: kindMeta }) %>
 
-<%- include('partials/edit-footer') %>
+<%- include('partials/edit-footer', { extraScripts: ['/js/review-mode.js'] }) %>

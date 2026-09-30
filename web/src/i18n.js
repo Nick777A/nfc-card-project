@@ -303,6 +303,19 @@ const DICTIONARY = {
     ru: 'Оставить отзыв на Google', en: 'Leave a Google review', fr: 'Laisser un avis Google',
     de: 'Google-Bewertung abgeben', es: 'Dejar una reseña en Google', it: 'Lascia una recensione su Google'
   },
+  feedbackNameLabel: {
+    ru: 'Имя (необязательно)', en: 'Name (optional)', fr: 'Nom (facultatif)', de: 'Name (optional)', es: 'Nombre (opcional)', it: 'Nome (facoltativo)'
+  },
+  feedbackCommentLabel: {
+    ru: 'Ваш отзыв', en: 'Your feedback', fr: 'Votre avis', de: 'Ihr Feedback', es: 'Tu comentario', it: 'Il tuo feedback'
+  },
+  feedbackSubmitButton: {
+    ru: 'Отправить', en: 'Send', fr: 'Envoyer', de: 'Absenden', es: 'Enviar', it: 'Invia'
+  },
+  feedbackThanks: {
+    ru: 'Спасибо за отзыв!', en: 'Thank you for your feedback!', fr: 'Merci pour votre avis !',
+    de: 'Vielen Dank für Ihr Feedback!', es: '¡Gracias por tu comentario!', it: 'Grazie per il tuo feedback!'
+  },
   reviewNoUrl: {
     ru: 'Ссылка на отзыв пока не указана.', en: "No review link has been added yet.", fr: "Aucun lien d'avis n'a encore été ajouté.",
     de: 'Es wurde noch kein Bewertungslink hinzugefügt.', es: 'Todavía no se ha añadido un enlace de reseña.', it: 'Nessun link per la recensione è stato ancora aggiunto.'

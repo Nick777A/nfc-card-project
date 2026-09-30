@@ -19,9 +19,9 @@ const KINDS = [
   },
   {
     id: 'review',
-    label: 'Google Reviews',
-    tagline: 'One tap to a 5-star review',
-    description: 'A single button that takes visitors straight to your Google review page — the fastest way to ask happy customers for a review.',
+    label: 'Reviews & Feedback',
+    tagline: 'Collect reviews your way',
+    description: 'One button visitors tap to leave feedback — send it straight to your Google review page, or keep it inside Digilama.',
     icon: 'review'
   },
   {

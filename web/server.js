@@ -753,7 +753,10 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
   } else if (kind === 'website') {
     extra = { website: normalizeExternalUrl(body.website || '') };
   } else if (kind === 'review') {
-    extra = { reviewGoogleUrl: normalizeExternalUrl(body.reviewGoogleUrl || '') };
+    extra = {
+      reviewMode: body.reviewMode === 'internal' ? 'internal' : 'external',
+      reviewGoogleUrl: normalizeExternalUrl(body.reviewGoogleUrl || '')
+    };
   } else if (kind === 'menu') {
     extra = { menuCategories: parseMenuInput(body.menuText) };
   } else if (kind === 'portfolio') {
@@ -1114,7 +1117,7 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
     fullName: '', tagline: '', photoUrl: '', bannerUrl: '', galleryUrls: [],
     phone: '', email: '', company: '', jobTitle: '', links: [],
     scheduleText: '', address: '', website: '', theme: null,
-    reviewGoogleUrl: '',
+    reviewMode: 'external', reviewGoogleUrl: '',
     menuCategories: [], portfolioItems: [], infoBody: '',
     bookingAvailability: {}, bookingDurationMin: 30, bookingWindowDays: 14, bookings: []
   });
@@ -1123,6 +1126,10 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
 
 // ---------- Trash: a delete moves a card here for 30 days before it's gone
 // for good, so an accidental click doesn't destroy data outright. ----------
+
+app.get('/admin/feedback', requireAuth, (req, res) => {
+  res.render('admin-feedback', { entries: db.listFeedback() });
+});
 
 app.get('/admin/trash', requireAuth, (req, res) => {
   res.render('trash', { cards: db.listTrash(), base: baseUrl(req) });
@@ -1446,7 +1453,7 @@ async function renderCardKindPublic(kind, card, req, res, t, lang) {
     return res.render('public-website', common);
   }
   if (kind === 'review') {
-    return res.render('public-review', common);
+    return res.render('public-review', { ...common, sent: req.query.sent === '1' });
   }
   if (kind === 'menu') {
     return res.render('public-menu', common);
@@ -1479,6 +1486,25 @@ async function renderCardKindPublic(kind, card, req, res, t, lang) {
   }
   return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
 }
+
+app.post('/u/:slug/feedback', (req, res) => {
+  const card = db.getCardBySlug(req.params.slug);
+  if (!card || card.type !== 'profile' || card.kind !== 'review' || card.reviewMode !== 'internal') {
+    return res.status(404).send('Not found');
+  }
+  const comment = (req.body.comment || '').trim().slice(0, 2000);
+  if (!comment) return res.redirect(`/u/${card.slug}`);
+  db.addFeedback({
+    id: crypto.randomUUID(),
+    cardId: card.id,
+    cardSlug: card.slug,
+    cardLabel: card.fullName || card.label,
+    name: (req.body.name || '').trim().slice(0, 200),
+    comment,
+    createdAt: Date.now()
+  });
+  res.redirect(`/u/${card.slug}?sent=1`);
+});
 
 app.post('/u/:slug/book', (req, res) => {
   const card = db.getCardBySlug(req.params.slug);
