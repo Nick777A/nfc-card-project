@@ -1054,8 +1054,6 @@ table.dl-table th { color: var(--muted); font-weight: 700; font-size: 12px; text
     flex-direction: column;
     justify-content: center;
   }
-  .dl-star-row { gap: 2px; }
-  .dl-star { font-size: 30px; padding: 1px; }
   .dl-avail-row { flex-wrap: wrap; }
   .dl-avail-day { width: 100%; }
   .dl-avail-row input[type="time"] { min-width: 0; }
@@ -1095,17 +1093,6 @@ a.dl-portfolio-item:hover { border-color: var(--u-accent1, var(--pink)); transfo
 .dl-menu-item-name { margin: 0; font-weight: 700; font-size: 14px; }
 .dl-menu-item-desc { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
 .dl-menu-item-price { flex: none; font-weight: 800; color: var(--u-accent2, var(--teal)); font-size: 14px; white-space: nowrap; }
-
-.dl-star-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 6px; }
-.dl-star {
-  background: none; border: none; cursor: pointer;
-  font-size: 38px; line-height: 1;
-  color: var(--border-strong);
-  transition: color 0.15s ease, transform 0.15s ease;
-  padding: 2px;
-}
-.dl-star:hover, .dl-star.is-filled { color: #ffc93c; transform: scale(1.1); }
-.dl-review-form { text-align: left; margin-top: 18px; }
 
 .dl-review-thanks { text-align: center; padding: 20px 0; }
 .dl-review-thanks-icon {
@@ -1204,12 +1191,6 @@ a.dl-portfolio-item:hover { border-color: var(--u-accent1, var(--pink)); transfo
 .dl-kind-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) { .dl-kind-card { animation: none; opacity: 1; } }
 
-/* ---- Private feedback list (edit-kind-review.ejs) ---- */
-.dl-feedback-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
-.dl-feedback-item { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
-.dl-feedback-stars { color: #ffc93c; font-size: 15px; letter-spacing: 1px; }
-.dl-feedback-stars .dim { color: var(--border-strong); }
-.dl-feedback-comment { margin: 6px 0 0; font-size: 14px; }
 
 /* ---- Booking availability editor + upcoming list (edit-kind-booking.ejs) ---- */
 .dl-avail-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }

@@ -753,10 +753,7 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
   } else if (kind === 'website') {
     extra = { website: normalizeExternalUrl(body.website || '') };
   } else if (kind === 'review') {
-    extra = {
-      reviewGoogleUrl: normalizeExternalUrl(body.reviewGoogleUrl || ''),
-      reviewLowRatingMessage: body.reviewLowRatingMessage || ''
-    };
+    extra = { reviewGoogleUrl: normalizeExternalUrl(body.reviewGoogleUrl || '') };
   } else if (kind === 'menu') {
     extra = { menuCategories: parseMenuInput(body.menuText) };
   } else if (kind === 'portfolio') {
@@ -1117,7 +1114,7 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
     fullName: '', tagline: '', photoUrl: '', bannerUrl: '', galleryUrls: [],
     phone: '', email: '', company: '', jobTitle: '', links: [],
     scheduleText: '', address: '', website: '', theme: null,
-    reviewGoogleUrl: '', reviewLowRatingMessage: '', reviewFeedback: [],
+    reviewGoogleUrl: '',
     menuCategories: [], portfolioItems: [], infoBody: '',
     bookingAvailability: {}, bookingDurationMin: 30, bookingWindowDays: 14, bookings: []
   });
@@ -1449,7 +1446,7 @@ async function renderCardKindPublic(kind, card, req, res, t, lang) {
     return res.render('public-website', common);
   }
   if (kind === 'review') {
-    return res.render('public-review', { ...common, feedbackSent: req.query.feedback === '1' });
+    return res.render('public-review', common);
   }
   if (kind === 'menu') {
     return res.render('public-menu', common);
@@ -1482,23 +1479,6 @@ async function renderCardKindPublic(kind, card, req, res, t, lang) {
   }
   return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
 }
-
-app.post('/u/:slug/review', (req, res) => {
-  const card = db.getCardBySlug(req.params.slug);
-  if (!card || card.type !== 'profile' || card.kind !== 'review') return res.status(404).send('Not found');
-  const rating = parseInt(req.body.rating, 10);
-  if (!rating || rating < 1 || rating > 5) return res.status(400).send('Invalid rating');
-  const feedback = {
-    id: crypto.randomUUID(),
-    rating,
-    comment: (req.body.comment || '').trim().slice(0, 2000),
-    contactName: (req.body.contactName || '').trim().slice(0, 200),
-    contactPhone: (req.body.contactPhone || '').trim().slice(0, 60),
-    createdAt: Date.now()
-  };
-  db.updateCard(card.id, { reviewFeedback: [feedback, ...(card.reviewFeedback || [])].slice(0, 500) });
-  res.redirect(`/u/${card.slug}?feedback=1`);
-});
 
 app.post('/u/:slug/book', (req, res) => {
   const card = db.getCardBySlug(req.params.slug);

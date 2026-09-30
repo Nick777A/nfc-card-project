@@ -299,39 +299,13 @@ const DICTIONARY = {
     ru: 'Меню пока не заполнено.', en: "The menu hasn't been filled in yet.", fr: "Le menu n'a pas encore été rempli.",
     de: 'Die Speisekarte wurde noch nicht ausgefüllt.', es: 'El menú aún no se ha completado.', it: 'Il menu non è stato ancora compilato.'
   },
-  reviewPrompt: {
-    ru: 'Как всё прошло?', en: 'How was your experience?', fr: "Comment s'est passée votre expérience ?",
-    de: 'Wie war Ihre Erfahrung?', es: '¿Qué tal tu experiencia?', it: "Com'è andata la tua esperienza?"
+  reviewLeaveButton: {
+    ru: 'Оставить отзыв на Google', en: 'Leave a Google review', fr: 'Laisser un avis Google',
+    de: 'Google-Bewertung abgeben', es: 'Dejar una reseña en Google', it: 'Lascia una recensione su Google'
   },
-  reviewLowRatingPrompt: {
-    ru: 'Жаль это слышать. Расскажите, что пошло не так — мы прочитаем лично и постараемся всё исправить.',
-    en: "Sorry to hear that. Tell us what went wrong — we'll read it personally and try to make it right.",
-    fr: "Désolé de l'apprendre. Dites-nous ce qui n'a pas fonctionné — nous le lirons personnellement.",
-    de: 'Das tut uns leid. Erzählen Sie uns, was schiefgelaufen ist — wir lesen es persönlich.',
-    es: 'Lamentamos escuchar eso. Cuéntanos qué salió mal — lo leeremos personalmente.',
-    it: 'Ci dispiace saperlo. Raccontaci cosa è andato storto — lo leggeremo personalmente.'
-  },
-  reviewNameLabel: {
-    ru: 'Имя (необязательно)', en: 'Name (optional)', fr: 'Nom (facultatif)', de: 'Name (optional)', es: 'Nombre (opcional)', it: 'Nome (facoltativo)'
-  },
-  reviewContactLabel: {
-    ru: 'Телефон или email (необязательно)', en: 'Phone or email (optional)', fr: 'Téléphone ou email (facultatif)',
-    de: 'Telefon oder E-Mail (optional)', es: 'Teléfono o email (opcional)', it: 'Telefono o email (facoltativo)'
-  },
-  reviewCommentLabel: {
-    ru: 'Что можно улучшить?', en: 'What could we improve?', fr: 'Que pourrions-nous améliorer ?',
-    de: 'Was können wir verbessern?', es: '¿Qué podríamos mejorar?', it: 'Cosa potremmo migliorare?'
-  },
-  reviewSendButton: {
-    ru: 'Отправить', en: 'Send feedback', fr: 'Envoyer', de: 'Absenden', es: 'Enviar', it: 'Invia'
-  },
-  reviewThanks: {
-    ru: 'Спасибо! Мы получили ваш отзыв и обязательно с ним поработаем.',
-    en: "Thank you! We've received your feedback and will act on it.",
-    fr: 'Merci ! Nous avons bien reçu votre retour et en tiendrons compte.',
-    de: 'Vielen Dank! Wir haben Ihr Feedback erhalten und werden darauf reagieren.',
-    es: '¡Gracias! Hemos recibido tu comentario y lo tendremos en cuenta.',
-    it: 'Grazie! Abbiamo ricevuto il tuo feedback e ne terremo conto.'
+  reviewNoUrl: {
+    ru: 'Ссылка на отзыв пока не указана.', en: "No review link has been added yet.", fr: "Aucun lien d'avis n'a encore été ajouté.",
+    de: 'Es wurde noch kein Bewertungslink hinzugefügt.', es: 'Todavía no se ha añadido un enlace de reseña.', it: 'Nessun link per la recensione è stato ancora aggiunto.'
   },
   bookingIntro: {
     ru: 'Выберите удобные дату и время.', en: 'Pick a date and time that works for you.',

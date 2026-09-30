@@ -1,37 +1,13 @@
 <%- include('partials/kind-header') %>
 
       <div class="dl-profile-item" style="--d:4">
-        <% if (feedbackSent) { %>
-          <div class="dl-review-thanks">
-            <div class="dl-review-thanks-icon">✓</div>
-            <p><%= t('reviewThanks') %></p>
-          </div>
+        <% if (card.reviewGoogleUrl) { %>
+          <a class="dl-btn primary block" href="<%= card.reviewGoogleUrl %>" target="_blank" rel="noopener">
+            <%= t('reviewLeaveButton') %> ↗
+          </a>
         <% } else { %>
-          <p class="dl-hint" style="text-align:center; margin-bottom:14px;"><%= t('reviewPrompt') %></p>
-          <div class="dl-star-row" id="review-star-row" data-google-url="<%= card.reviewGoogleUrl %>">
-            <% for (let i = 1; i <= 5; i++) { %>
-              <button type="button" class="dl-star" data-value="<%= i %>" aria-label="<%= i %> stars">★</button>
-            <% } %>
-          </div>
-
-          <form method="post" action="/u/<%= card.slug %>/review" id="review-feedback-form" class="dl-review-form" style="display:none;">
-            <input type="hidden" name="rating" id="review-rating-input" />
-            <p class="dl-hint" style="margin-bottom:14px;"><%= card.reviewLowRatingMessage || t('reviewLowRatingPrompt') %></p>
-            <div class="dl-field">
-              <label for="review-name"><%= t('reviewNameLabel') %></label>
-              <input type="text" id="review-name" name="contactName" />
-            </div>
-            <div class="dl-field">
-              <label for="review-contact"><%= t('reviewContactLabel') %></label>
-              <input type="text" id="review-contact" name="contactPhone" />
-            </div>
-            <div class="dl-field">
-              <label for="review-comment"><%= t('reviewCommentLabel') %></label>
-              <textarea id="review-comment" name="comment"></textarea>
-            </div>
-            <button type="submit" class="dl-btn primary block"><%= t('reviewSendButton') %></button>
-          </form>
+          <p class="dl-hint" style="text-align:center;"><%= t('reviewNoUrl') %></p>
         <% } %>
       </div>
 
-<%- include('partials/kind-footer', { extraScript: '/js/public-review.js' }) %>
+<%- include('partials/kind-footer') %>

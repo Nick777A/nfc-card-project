@@ -20,8 +20,8 @@ const KINDS = [
   {
     id: 'review',
     label: 'Google Reviews',
-    tagline: 'More 5-star reviews, less risk',
-    description: 'Visitors rate you first — happy ones go straight to Google, everyone else leaves private feedback instead of a public bad review.',
+    tagline: 'One tap to a 5-star review',
+    description: 'A single button that takes visitors straight to your Google review page — the fastest way to ask happy customers for a review.',
     icon: 'review'
   },
   {
