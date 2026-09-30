@@ -26,6 +26,7 @@ const { generateSlug, buildVCard, resolveTagPayload } = require('./src/cardPaylo
 const { LANGUAGES, translate, resolveLang } = require('./src/i18n');
 const { detectSocial } = require('./src/socialIcons');
 const { DESIGN_OPTIONS, RU_DESIGN_LABELS, computeOrderPricing } = require('./src/pricing');
+const { KINDS, isValidKind, getKind } = require('./src/cardKinds');
 
 const PORT = process.env.PORT || 3000;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -297,6 +298,86 @@ function themeStyles(theme) {
     wrapStyle: `background:${bg};`,
     cardStyle: `--u-accent1:${theme.accentColor1};--u-accent2:${theme.accentColor2};--u-icon-color:${theme.iconColor};--u-icon-scale:${iconScale};`
   };
+}
+
+// ---------- Card-kind field parsing: menu, portfolio, booking availability ----------
+
+/** "# Category\nName | description | price" text into [{ name, items: [{name, description, price}] }]. */
+function parseMenuInput(text) {
+  const lines = (text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  const categories = [];
+  let current = null;
+  for (const line of lines) {
+    if (line.startsWith('#')) {
+      current = { name: line.replace(/^#+\s*/, ''), items: [] };
+      categories.push(current);
+      continue;
+    }
+    const [name, description, price] = line.split('|').map((s) => (s || '').trim());
+    if (!name) continue;
+    if (!current) {
+      current = { name: 'Menu', items: [] };
+      categories.push(current);
+    }
+    current.items.push({ name, description: description || '', price: price || '' });
+  }
+  return categories;
+}
+
+function formatMenuForInput(categories) {
+  return (categories || [])
+    .map((cat) => `# ${cat.name}\n${(cat.items || []).map((i) => [i.name, i.description, i.price].join(' | ')).join('\n')}`)
+    .join('\n\n');
+}
+
+/** "Title | description | link" per line, paired by order with uploaded images. */
+function parsePortfolioInput(text, imageUrls, existingItems) {
+  const lines = (text || '').split('\n').map((l) => l.trim()).filter(Boolean);
+  return lines.map((line, i) => {
+    const [title, description, link] = line.split('|').map((s) => (s || '').trim());
+    const existingImage = existingItems && existingItems[i] ? existingItems[i].imageUrl : '';
+    return {
+      title: title || `Project ${i + 1}`,
+      description: description || '',
+      link: link ? normalizeExternalUrl(link) : '',
+      imageUrl: (imageUrls && imageUrls[i]) || existingImage || ''
+    };
+  });
+}
+
+function formatPortfolioForInput(items) {
+  return (items || []).map((i) => [i.title, i.description, i.link].join(' | ')).join('\n');
+}
+
+const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+/** Reads avail_<day>_on / _from / _to fields into { mon: [{start,end}], ... } (one range per day, kept simple on purpose). */
+function parseAvailabilityFromBody(body) {
+  const availability = {};
+  WEEKDAYS.forEach((day) => {
+    if (body[`avail_${day}_on`] === 'on') {
+      const start = body[`avail_${day}_from`] || '09:00';
+      const end = body[`avail_${day}_to`] || '18:00';
+      if (start < end) availability[day] = [{ start, end }];
+    }
+  });
+  return availability;
+}
+
+/** Every HH:MM slot of the given duration that fits inside the day's open ranges. */
+function slotsForDay(availability, weekday, durationMin) {
+  const ranges = availability[weekday] || [];
+  const slots = [];
+  ranges.forEach((range) => {
+    let [h, m] = range.start.split(':').map(Number);
+    const [endH, endM] = range.end.split(':').map(Number);
+    while (h * 60 + m + durationMin <= endH * 60 + endM) {
+      slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+      m += durationMin;
+      if (m >= 60) { h += Math.floor(m / 60); m %= 60; }
+    }
+  });
+  return slots;
 }
 
 async function cardFieldsFromBody(body, files, existing = {}) {
@@ -584,18 +665,48 @@ function hasPendingClaim(req, card) {
   return !!(card.claimable && !card.customerId && pendingId === card.id);
 }
 
+/** The kind an already-owned card renders/edits as; unset only ever happens for cards from before this feature. */
+function effectiveKind(card) {
+  return card.kind || 'business';
+}
+
 app.get('/my/cards/:id/edit', requireCustomerAuth, (req, res) => {
   const card = db.getCardById(req.params.id);
   const pendingClaim = card && hasPendingClaim(req, card);
   if (!card || (card.customerId !== req.customerId && !pendingClaim)) return res.status(404).send('Card not found');
-  res.render('customer-edit-card', { card, pendingClaim, error: null });
+
+  if (pendingClaim && !card.kind) {
+    return res.render('choose-card-kind', { card, kinds: KINDS, error: null });
+  }
+
+  const kind = effectiveKind(card);
+  const view = kind === 'business' ? 'customer-edit-card' : `edit-kind-${kind}`;
+  const locals = { card, pendingClaim, kind, kindMeta: getKind(kind), error: null };
+  if (kind === 'menu') locals.menuText = formatMenuForInput(card.menuCategories);
+  if (kind === 'portfolio') locals.portfolioText = formatPortfolioForInput(card.portfolioItems);
+  if (kind === 'booking') locals.weekdays = WEEKDAYS;
+  res.render(view, locals);
+});
+
+app.post('/my/cards/:id/kind', requireCustomerAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  const pendingClaim = card && hasPendingClaim(req, card);
+  if (!card || !pendingClaim) return res.status(404).send('Card not found');
+  if (card.kind) return res.redirect(`/my/cards/${card.id}/edit`); // already chosen — locked in
+  if (!isValidKind(req.body.kind)) {
+    return res.render('choose-card-kind', { card, kinds: KINDS, error: 'Please choose one of the options below.' });
+  }
+  db.updateCard(card.id, { kind: req.body.kind });
+  res.redirect(`/my/cards/${card.id}/edit`);
 });
 
 app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req, res) => {
   const card = db.getCardById(req.params.id);
   const pendingClaim = card && hasPendingClaim(req, card);
   if (!card || (card.customerId !== req.customerId && !pendingClaim)) return res.status(404).send('Card not found');
+  if (pendingClaim && !card.kind) return res.status(400).send('Choose a card type first');
 
+  const kind = effectiveKind(card);
   const body = req.body;
   const photoFile = req.files && req.files.photo && req.files.photo[0];
   const bannerFile = req.files && req.files.banner && req.files.banner[0];
@@ -610,26 +721,58 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
     ]);
   } catch (e) {
     console.error('Upload failed:', e.message);
-    return res.render('customer-edit-card', { card, pendingClaim, error: 'Could not upload the image, please try again' });
+    const view = kind === 'business' ? 'customer-edit-card' : `edit-kind-${kind}`;
+    return res.render(view, { card, pendingClaim, kind, kindMeta: getKind(kind), weekdays: WEEKDAYS, error: 'Could not upload the image, please try again' });
   }
 
   const fullName = body.fullName || '';
-  db.updateCard(card.id, {
+  const common = {
     fullName,
     tagline: body.tagline || '',
-    phone: body.phone || '',
-    email: body.email || '',
-    website: normalizeExternalUrl(body.website || ''),
-    company: body.company || '',
-    jobTitle: body.jobTitle || '',
-    address: body.address || '',
-    scheduleText: body.scheduleText || '',
-    links: parseLinksInput(body.links),
-    theme: buildThemeFromBody(body),
     photoUrl: photoUrl || card.photoUrl,
     bannerUrl: bannerUrl || card.bannerUrl,
-    galleryUrls: galleryUrls || card.galleryUrls || [],
-    updatedAt: Date.now(),
+    theme: buildThemeFromBody(body),
+    updatedAt: Date.now()
+  };
+
+  let extra = {};
+  if (kind === 'business') {
+    extra = {
+      phone: body.phone || '',
+      email: body.email || '',
+      website: normalizeExternalUrl(body.website || ''),
+      company: body.company || '',
+      jobTitle: body.jobTitle || '',
+      address: body.address || '',
+      scheduleText: body.scheduleText || '',
+      links: parseLinksInput(body.links),
+      galleryUrls: galleryUrls || card.galleryUrls || []
+    };
+  } else if (kind === 'website') {
+    extra = { website: normalizeExternalUrl(body.website || '') };
+  } else if (kind === 'review') {
+    extra = {
+      reviewGoogleUrl: normalizeExternalUrl(body.reviewGoogleUrl || ''),
+      reviewLowRatingMessage: body.reviewLowRatingMessage || ''
+    };
+  } else if (kind === 'menu') {
+    extra = { menuCategories: parseMenuInput(body.menuText) };
+  } else if (kind === 'portfolio') {
+    extra = { portfolioItems: parsePortfolioInput(body.portfolioText, galleryUrls, card.portfolioItems) };
+  } else if (kind === 'info') {
+    extra = { infoBody: body.infoBody || '', address: body.address || '', galleryUrls: galleryUrls || card.galleryUrls || [] };
+  } else if (kind === 'booking') {
+    extra = {
+      address: body.address || '',
+      bookingDurationMin: [15, 30, 45, 60, 90].includes(parseInt(body.bookingDurationMin, 10)) ? parseInt(body.bookingDurationMin, 10) : 30,
+      bookingWindowDays: Math.max(1, Math.min(60, parseInt(body.bookingWindowDays, 10) || 14)),
+      bookingAvailability: parseAvailabilityFromBody(body)
+    };
+  }
+
+  db.updateCard(card.id, {
+    ...common,
+    ...extra,
     // This save is what actually makes the card theirs — scanning and
     // registering alone never does, so an abandoned signup leaves the
     // card free for the next person to claim.
@@ -639,6 +782,14 @@ app.post('/my/cards/:id/edit', requireCustomerAuth, uploadCardFiles, async (req,
   });
   if (pendingClaim) res.clearCookie(PENDING_CLAIM_COOKIE);
   res.redirect('/my');
+});
+
+app.post('/my/cards/:id/bookings/:bookingId/cancel', requireCustomerAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card || card.customerId !== req.customerId) return res.status(404).send('Card not found');
+  const bookings = (card.bookings || []).map((b) => (b.id === req.params.bookingId ? { ...b, status: 'cancelled' } : b));
+  db.updateCard(card.id, { bookings });
+  res.redirect(`/my/cards/${card.id}/edit`);
 });
 
 // ---------- Admin: dashboard ----------
@@ -878,6 +1029,7 @@ app.post('/admin/cards/stock', requireAuth, (req, res) => {
       lastViewedAt: null,
       active: true,
       claimable: true,
+      kind: null,
       batchId,
       customerId: null,
       fullName: '',
@@ -958,10 +1110,14 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
   db.updateCard(card.id, {
     customerId: null,
     claimable: true,
+    kind: null,
     label: card.slug.toUpperCase(),
     fullName: '', tagline: '', photoUrl: '', bannerUrl: '', galleryUrls: [],
     phone: '', email: '', company: '', jobTitle: '', links: [],
-    scheduleText: '', address: '', website: '', theme: null
+    scheduleText: '', address: '', website: '', theme: null,
+    reviewGoogleUrl: '', reviewLowRatingMessage: '', reviewFeedback: [],
+    menuCategories: [], portfolioItems: [], infoBody: '',
+    bookingAvailability: {}, bookingDurationMin: 30, bookingWindowDays: 14, bookings: []
   });
   res.redirect('/admin');
 });
@@ -1227,6 +1383,9 @@ app.get('/u/:slug', async (req, res) => {
     case 'wifi':
     case 'custom':
     default: {
+      if (card.type === 'profile' && card.kind && card.kind !== 'business') {
+        return renderCardKindPublic(card.kind, card, req, res, t, lang);
+      }
       // Lets the card's own owner show this same QR from their phone screen
       // as a fallback when the person they're greeting can't read NFC.
       const selfUrl = `${baseUrl(req)}/u/${card.slug}`;
@@ -1269,6 +1428,105 @@ app.get('/u/:slug', async (req, res) => {
       });
     }
   }
+});
+
+async function renderCardKindPublic(kind, card, req, res, t, lang) {
+  const base = baseUrl(req);
+  const selfUrl = `${base}/u/${card.slug}`;
+  const qrDataUrl = await QRCode.toDataURL(selfUrl, { margin: 1, width: 264 });
+  const { wrapStyle, cardStyle } = themeStyles(card.theme);
+  const kindMeta = getKind(kind);
+  const common = {
+    card, qrDataUrl, t, lang, languages: LANGUAGES, base, wrapStyle, cardStyle,
+    ogImage: `${base}/og-image.png`,
+    ogTitle: card.fullName || card.label,
+    ogDescription: card.tagline || (kindMeta && kindMeta.tagline) || 'Digital card'
+  };
+
+  if (kind === 'website') {
+    return res.render('public-website', common);
+  }
+  if (kind === 'review') {
+    return res.render('public-review', { ...common, feedbackSent: req.query.feedback === '1' });
+  }
+  if (kind === 'menu') {
+    return res.render('public-menu', common);
+  }
+  if (kind === 'portfolio') {
+    return res.render('public-portfolio', common);
+  }
+  if (kind === 'info') {
+    return res.render('public-info', common);
+  }
+  if (kind === 'booking') {
+    const availability = card.bookingAvailability || {};
+    const durationMin = card.bookingDurationMin || 30;
+    const windowDays = card.bookingWindowDays || 14;
+    const today = new Date();
+    const days = [];
+    for (let i = 0; i < windowDays; i += 1) {
+      const d = new Date(today.getTime() + i * 86400000);
+      const weekday = WEEKDAYS[(d.getDay() + 6) % 7]; // JS: 0=Sun -> map to our mon-first index
+      const slots = slotsForDay(availability, weekday, durationMin);
+      if (!slots.length) continue;
+      const dateStr = d.toISOString().slice(0, 10);
+      const bookedTimes = (card.bookings || [])
+        .filter((b) => b.date === dateStr && b.status !== 'cancelled')
+        .map((b) => b.time);
+      const openSlots = slots.filter((s) => !bookedTimes.includes(s));
+      if (openSlots.length) days.push({ date: dateStr, label: d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), slots: openSlots });
+    }
+    return res.render('public-booking', { ...common, days, booked: req.query.booked === '1', bookError: req.query.bookError === '1' });
+  }
+  return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
+}
+
+app.post('/u/:slug/review', (req, res) => {
+  const card = db.getCardBySlug(req.params.slug);
+  if (!card || card.type !== 'profile' || card.kind !== 'review') return res.status(404).send('Not found');
+  const rating = parseInt(req.body.rating, 10);
+  if (!rating || rating < 1 || rating > 5) return res.status(400).send('Invalid rating');
+  const feedback = {
+    id: crypto.randomUUID(),
+    rating,
+    comment: (req.body.comment || '').trim().slice(0, 2000),
+    contactName: (req.body.contactName || '').trim().slice(0, 200),
+    contactPhone: (req.body.contactPhone || '').trim().slice(0, 60),
+    createdAt: Date.now()
+  };
+  db.updateCard(card.id, { reviewFeedback: [feedback, ...(card.reviewFeedback || [])].slice(0, 500) });
+  res.redirect(`/u/${card.slug}?feedback=1`);
+});
+
+app.post('/u/:slug/book', (req, res) => {
+  const card = db.getCardBySlug(req.params.slug);
+  if (!card || card.type !== 'profile' || card.kind !== 'booking') return res.status(404).send('Not found');
+  const { date, time } = req.body;
+  const name = (req.body.name || '').trim();
+  if (!name) return res.redirect(`/u/${card.slug}?bookError=1`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || !/^\d{2}:\d{2}$/.test(time || '')) {
+    return res.redirect(`/u/${card.slug}?bookError=1`);
+  }
+  const durationMin = card.bookingDurationMin || 30;
+  const d = new Date(`${date}T00:00:00`);
+  const weekday = WEEKDAYS[(d.getDay() + 6) % 7];
+  const validSlot = slotsForDay(card.bookingAvailability || {}, weekday, durationMin).includes(time);
+  const alreadyBooked = (card.bookings || []).some((b) => b.date === date && b.time === time && b.status !== 'cancelled');
+  if (!validSlot || alreadyBooked) return res.redirect(`/u/${card.slug}?bookError=1`);
+
+  const booking = {
+    id: crypto.randomUUID(),
+    date,
+    time,
+    name,
+    phone: (req.body.phone || '').trim().slice(0, 60),
+    email: (req.body.email || '').trim().slice(0, 200),
+    note: (req.body.note || '').trim().slice(0, 1000),
+    status: 'confirmed',
+    createdAt: Date.now()
+  };
+  db.updateCard(card.id, { bookings: [...(card.bookings || []), booking] });
+  res.redirect(`/u/${card.slug}?booked=1`);
 });
 
 app.post('/u/:slug/claim', loginLimiter, loginSlowDown, (req, res) => {

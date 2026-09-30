@@ -1,0 +1,24 @@
+<%- include('partials/kind-header') %>
+
+      <div class="dl-profile-item" style="--d:4; text-align:left;">
+        <% if (card.menuCategories && card.menuCategories.length) { %>
+          <% card.menuCategories.forEach(function(cat) { %>
+            <div class="dl-menu-category">
+              <p class="dl-menu-category-title"><%= cat.name %></p>
+              <% (cat.items || []).forEach(function(item) { %>
+                <div class="dl-menu-item">
+                  <div class="dl-menu-item-info">
+                    <p class="dl-menu-item-name"><%= item.name %></p>
+                    <% if (item.description) { %><p class="dl-menu-item-desc"><%= item.description %></p><% } %>
+                  </div>
+                  <% if (item.price) { %><span class="dl-menu-item-price"><%= item.price %></span><% } %>
+                </div>
+              <% }) %>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <p class="dl-hint" style="text-align:center;"><%= t('menuEmpty') %></p>
+        <% } %>
+      </div>
+
+<%- include('partials/kind-footer') %>

@@ -284,6 +284,97 @@ const DICTIONARY = {
   claimSubmit: {
     ru: 'Создать аккаунт и продолжить', en: 'Create account and continue', fr: 'Créer un compte et continuer',
     de: 'Konto erstellen und fortfahren', es: 'Crear cuenta y continuar', it: 'Crea account e continua'
+  },
+  websiteVisitButton: {
+    ru: 'Открыть сайт', en: 'Visit website', fr: 'Voir le site', de: 'Website besuchen', es: 'Visitar sitio web', it: 'Visita il sito'
+  },
+  websiteNoUrl: {
+    ru: 'Адрес сайта пока не указан.', en: 'No website has been added yet.', fr: "Aucun site n'a encore été ajouté.",
+    de: 'Es wurde noch keine Website hinzugefügt.', es: 'Todavía no se ha añadido un sitio web.', it: 'Nessun sito web è stato ancora aggiunto.'
+  },
+  portfolioEmpty: {
+    ru: 'Пока нет проектов.', en: 'No projects yet.', fr: 'Pas encore de projets.', de: 'Noch keine Projekte.', es: 'Todavía no hay proyectos.', it: 'Nessun progetto ancora.'
+  },
+  menuEmpty: {
+    ru: 'Меню пока не заполнено.', en: "The menu hasn't been filled in yet.", fr: "Le menu n'a pas encore été rempli.",
+    de: 'Die Speisekarte wurde noch nicht ausgefüllt.', es: 'El menú aún no se ha completado.', it: 'Il menu non è stato ancora compilato.'
+  },
+  reviewPrompt: {
+    ru: 'Как всё прошло?', en: 'How was your experience?', fr: "Comment s'est passée votre expérience ?",
+    de: 'Wie war Ihre Erfahrung?', es: '¿Qué tal tu experiencia?', it: "Com'è andata la tua esperienza?"
+  },
+  reviewLowRatingPrompt: {
+    ru: 'Жаль это слышать. Расскажите, что пошло не так — мы прочитаем лично и постараемся всё исправить.',
+    en: "Sorry to hear that. Tell us what went wrong — we'll read it personally and try to make it right.",
+    fr: "Désolé de l'apprendre. Dites-nous ce qui n'a pas fonctionné — nous le lirons personnellement.",
+    de: 'Das tut uns leid. Erzählen Sie uns, was schiefgelaufen ist — wir lesen es persönlich.',
+    es: 'Lamentamos escuchar eso. Cuéntanos qué salió mal — lo leeremos personalmente.',
+    it: 'Ci dispiace saperlo. Raccontaci cosa è andato storto — lo leggeremo personalmente.'
+  },
+  reviewNameLabel: {
+    ru: 'Имя (необязательно)', en: 'Name (optional)', fr: 'Nom (facultatif)', de: 'Name (optional)', es: 'Nombre (opcional)', it: 'Nome (facoltativo)'
+  },
+  reviewContactLabel: {
+    ru: 'Телефон или email (необязательно)', en: 'Phone or email (optional)', fr: 'Téléphone ou email (facultatif)',
+    de: 'Telefon oder E-Mail (optional)', es: 'Teléfono o email (opcional)', it: 'Telefono o email (facoltativo)'
+  },
+  reviewCommentLabel: {
+    ru: 'Что можно улучшить?', en: 'What could we improve?', fr: 'Que pourrions-nous améliorer ?',
+    de: 'Was können wir verbessern?', es: '¿Qué podríamos mejorar?', it: 'Cosa potremmo migliorare?'
+  },
+  reviewSendButton: {
+    ru: 'Отправить', en: 'Send feedback', fr: 'Envoyer', de: 'Absenden', es: 'Enviar', it: 'Invia'
+  },
+  reviewThanks: {
+    ru: 'Спасибо! Мы получили ваш отзыв и обязательно с ним поработаем.',
+    en: "Thank you! We've received your feedback and will act on it.",
+    fr: 'Merci ! Nous avons bien reçu votre retour et en tiendrons compte.',
+    de: 'Vielen Dank! Wir haben Ihr Feedback erhalten und werden darauf reagieren.',
+    es: '¡Gracias! Hemos recibido tu comentario y lo tendremos en cuenta.',
+    it: 'Grazie! Abbiamo ricevuto il tuo feedback e ne terremo conto.'
+  },
+  bookingIntro: {
+    ru: 'Выберите удобные дату и время.', en: 'Pick a date and time that works for you.',
+    fr: 'Choisissez une date et une heure qui vous conviennent.', de: 'Wählen Sie ein passendes Datum und eine Uhrzeit.',
+    es: 'Elige una fecha y hora que te convenga.', it: 'Scegli una data e un orario che ti sia comodo.'
+  },
+  bookingNoSlots: {
+    ru: 'Свободных слотов пока нет.', en: 'No open time slots right now.', fr: 'Aucun créneau disponible pour le moment.',
+    de: 'Momentan keine freien Termine.', es: 'No hay horarios disponibles por ahora.', it: 'Nessuno slot disponibile al momento.'
+  },
+  bookingSelectTimePrompt: {
+    ru: 'Выберите время', en: 'Choose a time', fr: 'Choisissez une heure', de: 'Uhrzeit wählen', es: 'Elige una hora', it: 'Scegli un orario'
+  },
+  bookingNameLabel: {
+    ru: 'Ваше имя', en: 'Your name', fr: 'Votre nom', de: 'Ihr Name', es: 'Tu nombre', it: 'Il tuo nome'
+  },
+  bookingPhoneLabel: {
+    ru: 'Телефон', en: 'Phone', fr: 'Téléphone', de: 'Telefon', es: 'Teléfono', it: 'Telefono'
+  },
+  bookingEmailLabel: {
+    ru: 'Email (необязательно)', en: 'Email (optional)', fr: 'Email (facultatif)', de: 'E-Mail (optional)', es: 'Email (opcional)', it: 'Email (facoltativo)'
+  },
+  bookingNoteLabel: {
+    ru: 'Комментарий (необязательно)', en: 'Note (optional)', fr: 'Note (facultative)', de: 'Notiz (optional)', es: 'Nota (opcional)', it: 'Nota (facoltativa)'
+  },
+  bookingSubmitButton: {
+    ru: 'Запросить бронирование', en: 'Request booking', fr: 'Demander une réservation', de: 'Termin anfragen', es: 'Solicitar reserva', it: 'Richiedi prenotazione'
+  },
+  bookingConfirmedTitle: {
+    ru: 'Заявка отправлена!', en: 'Request sent!', fr: 'Demande envoyée !', de: 'Anfrage gesendet!', es: '¡Solicitud enviada!', it: 'Richiesta inviata!'
+  },
+  bookingConfirmedHint: {
+    ru: 'С вами свяжутся, чтобы подтвердить встречу.', en: "They'll be in touch to confirm your booking.",
+    fr: 'Vous serez contacté pour confirmer votre réservation.', de: 'Man wird sich mit Ihnen in Verbindung setzen, um den Termin zu bestätigen.',
+    es: 'Se pondrán en contacto contigo para confirmar tu reserva.', it: 'Sarai contattato per confermare la prenotazione.'
+  },
+  bookingErrorHint: {
+    ru: 'Этот слот уже занят или недействителен — выберите другое время.',
+    en: 'That slot is no longer available — please pick another time.',
+    fr: "Ce créneau n'est plus disponible — veuillez choisir un autre horaire.",
+    de: 'Dieser Termin ist nicht mehr verfügbar — bitte wählen Sie eine andere Zeit.',
+    es: 'Ese horario ya no está disponible — elige otra hora.',
+    it: 'Quello slot non è più disponibile — scegli un altro orario.'
   }
 };
 

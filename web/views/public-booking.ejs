@@ -1,0 +1,59 @@
+<%- include('partials/kind-header') %>
+
+      <div class="dl-profile-item" style="--d:4">
+        <% if (booked) { %>
+          <div class="dl-review-thanks">
+            <div class="dl-review-thanks-icon">✓</div>
+            <p><strong><%= t('bookingConfirmedTitle') %></strong></p>
+            <p class="dl-hint"><%= t('bookingConfirmedHint') %></p>
+          </div>
+        <% } else { %>
+          <% if (bookError) { %><div class="dl-error"><%= t('bookingErrorHint') %></div><% } %>
+          <p class="dl-hint" style="text-align:center; margin-bottom:14px;"><%= t('bookingIntro') %></p>
+
+          <% if (!days.length) { %>
+            <p class="dl-hint" style="text-align:center;"><%= t('bookingNoSlots') %></p>
+          <% } else { %>
+            <div class="dl-booking-days" id="booking-days">
+              <% days.forEach(function(d, i) { %>
+                <button type="button" class="dl-booking-day <%= i === 0 ? 'active' : '' %>" data-date="<%= d.date %>"><%= d.label %></button>
+              <% }) %>
+            </div>
+            <p class="dl-hint" style="margin:14px 0 8px;"><%= t('bookingSelectTimePrompt') %></p>
+            <div id="booking-slots">
+              <% days.forEach(function(d, i) { %>
+                <div class="dl-booking-slot-group" data-date="<%= d.date %>" style="<%= i === 0 ? '' : 'display:none;' %>">
+                  <% d.slots.forEach(function(s) { %>
+                    <button type="button" class="dl-booking-slot" data-time="<%= s %>"><%= s %></button>
+                  <% }) %>
+                </div>
+              <% }) %>
+            </div>
+
+            <form method="post" action="/u/<%= card.slug %>/book" id="booking-form" class="dl-booking-form" style="display:none;">
+              <input type="hidden" name="date" id="booking-date-input" />
+              <input type="hidden" name="time" id="booking-time-input" />
+              <p class="dl-hint" id="booking-selected-label" style="margin-bottom:14px; font-weight:700; color:var(--text);"></p>
+              <div class="dl-field">
+                <label for="booking-name"><%= t('bookingNameLabel') %></label>
+                <input type="text" id="booking-name" name="name" required />
+              </div>
+              <div class="dl-field">
+                <label for="booking-phone"><%= t('bookingPhoneLabel') %></label>
+                <input type="tel" id="booking-phone" name="phone" required />
+              </div>
+              <div class="dl-field">
+                <label for="booking-email"><%= t('bookingEmailLabel') %></label>
+                <input type="email" id="booking-email" name="email" />
+              </div>
+              <div class="dl-field">
+                <label for="booking-note"><%= t('bookingNoteLabel') %></label>
+                <textarea id="booking-note" name="note"></textarea>
+              </div>
+              <button type="submit" class="dl-btn primary block"><%= t('bookingSubmitButton') %></button>
+            </form>
+          <% } %>
+        <% } %>
+      </div>
+
+<%- include('partials/kind-footer', { extraScript: '/js/public-booking.js' }) %>

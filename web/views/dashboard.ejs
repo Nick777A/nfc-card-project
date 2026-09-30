@@ -72,7 +72,7 @@
               <tr data-search="<%= [card.label, card.type, card.slug].join(' ').toLowerCase() %>">
                 <td><input type="checkbox" class="card-checkbox" value="<%= card.id %>" /></td>
                 <td><a href="/admin/cards/<%= card.id %>"><%= card.label %></a></td>
-                <td><span class="badge"><%= card.type %></span></td>
+                <td><span class="badge"><%= card.type %></span><% if (card.kind && card.kind !== 'business') { %> <span class="badge">🔖 <%= card.kind %></span><% } %></td>
                 <td><a href="/u/<%= card.slug %>" target="_blank">/u/<%= card.slug %></a></td>
                 <td><%= card.viewCount || 0 %></td>
                 <td>

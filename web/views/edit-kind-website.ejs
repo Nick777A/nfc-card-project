@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit card — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+<%- include('partials/edit-header') %>
+
+        <h2 class="dl-form-section-title"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.5 2.7 3.8 6 3.8 9.5s-1.3 6.8-3.8 9.5c-2.5-2.7-3.8-6-3.8-9.5s1.3-6.8 3.8-9.5Z"/></svg> Website</h2>
+        <div class="dl-field">
+          <label for="fullName">Brand / site name</label>
+          <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="tagline">Short pitch</label>
+          <input type="text" id="tagline" name="tagline" placeholder="e.g. Handmade ceramics, shipped worldwide" value="<%= card.tagline || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="website">Website URL</label>
+          <input type="text" id="website" name="website" placeholder="https://..." value="<%= card.website || '' %>" required />
+        </div>
+        <div class="dl-row">
+          <div class="dl-field">
+            <label for="photo">Logo</label>
+            <input type="file" id="photo" name="photo" accept="image/*" />
+          </div>
+          <div class="dl-field">
+            <label for="banner">Cover banner</label>
+            <input type="file" id="banner" name="banner" accept="image/*" />
+            <% if (card.bannerUrl) { %><p class="dl-hint">Banner set — upload a new one to replace it.</p><% } %>
+          </div>
+        </div>
+
+<%- include('partials/appearance-editor', { card: card, kindMeta: kindMeta }) %>
+
+<%- include('partials/edit-footer') %>

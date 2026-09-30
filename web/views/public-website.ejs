@@ -1,0 +1,14 @@
+<%- include('partials/kind-header') %>
+
+      <div class="dl-profile-item" style="--d:4">
+        <% if (card.website) { %>
+          <a class="dl-btn primary block" href="<%= card.website %>" target="_blank" rel="noopener">
+            <%= t('websiteVisitButton') %> ↗
+          </a>
+          <p class="dl-hint" style="text-align:center; margin-top:10px; word-break:break-all;"><%= card.website.replace(/^https?:\/\//, '') %></p>
+        <% } else { %>
+          <p class="dl-hint" style="text-align:center;"><%= t('websiteNoUrl') %></p>
+        <% } %>
+      </div>
+
+<%- include('partials/kind-footer') %>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit card — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+<%- include('partials/edit-header') %>
+
+        <h2 class="dl-form-section-title"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"><path d="M6 3v18M6 3c-1.7 0-3 1.5-3 3.5S4.3 10 6 10M18 3v7a3 3 0 0 1-6 0V3m3 7v11"/></svg> Menu</h2>
+        <div class="dl-field">
+          <label for="fullName">Restaurant / café name</label>
+          <input type="text" id="fullName" name="fullName" value="<%= card.fullName || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="tagline">Tagline</label>
+          <input type="text" id="tagline" name="tagline" placeholder="e.g. Fresh, local, every day" value="<%= card.tagline || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="photo">Logo</label>
+          <input type="file" id="photo" name="photo" accept="image/*" />
+        </div>
+        <div class="dl-field">
+          <label for="menuText">Menu</label>
+          <textarea id="menuText" name="menuText" rows="14" class="dl-mono-textarea" placeholder="# Starters
+Bruschetta | Tomato, basil, garlic | 6.50
+Soup of the day | | 5.00
+
+# Mains
+Steak Frites | 250g sirloin, fries, salad | 22.00"><%= menuText %></textarea>
+          <p class="dl-hint">
+            Start a category with <code># Category name</code>, then one item per line as
+            <code>Name | Description | Price</code> (description and price are optional).
+          </p>
+        </div>
+
+<%- include('partials/appearance-editor', { card: card, kindMeta: kindMeta }) %>
+
+<%- include('partials/edit-footer') %>

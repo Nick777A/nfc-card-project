@@ -1,0 +1,20 @@
+  <nav class="dl-nav">
+    <a class="dl-logo" href="/">digilama</a>
+    <div class="dl-nav-links">
+      <a href="/u/<%= card.slug %>" target="_blank">View live card ↗</a>
+      <a href="/my">← My cards</a>
+    </div>
+  </nav>
+
+  <div class="dl-container narrow" style="padding-bottom:60px;">
+    <div class="dl-card">
+      <h1 style="margin-top:0;">Edit card</h1>
+      <% if (pendingClaim) { %>
+        <div class="dl-hint" style="margin:-4px 0 18px; padding:12px 14px; border-radius:10px; background:rgba(0,230,195,0.08); border:1px solid rgba(0,230,195,0.3); color:var(--text);">
+          This card isn't linked to your account yet — fill in your details and click <strong>Save</strong> below to make it yours. If you leave without saving, it stays free for someone else to activate.
+        </div>
+      <% } else { %>
+        <p class="dl-hint" style="margin-top:-8px;">Changes save instantly to your public link — nothing goes live until you hit Save.</p>
+      <% } %>
+      <% if (error) { %><div class="dl-error"><%= error %></div><% } %>
+      <form method="post" action="/my/cards/<%= card.id %>/edit" enctype="multipart/form-data">

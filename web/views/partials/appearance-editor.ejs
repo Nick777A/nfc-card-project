@@ -1,0 +1,105 @@
+        <div class="dl-appearance-panel">
+          <h2 style="margin:0 0 4px; font-size:18px; display:flex; align-items:center; gap:8px;">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--pink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></svg>
+            Appearance
+          </h2>
+          <p class="dl-hint" style="margin-top:0;">Pick a preset or fully customize your card's colors — the phone preview updates instantly, so you see exactly how it'll look before you save.</p>
+          <div class="dl-field">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" id="themeEnabled" name="themeEnabled" style="width:auto;" <%= card.theme ? 'checked' : '' %> />
+              Use custom style (otherwise the default Digilama look is used)
+            </label>
+          </div>
+          <div id="theme-fields" style="<%= card.theme ? '' : 'display:none;' %>">
+            <div class="dl-appearance-grid">
+              <div class="dl-appearance-controls">
+                <div class="dl-field">
+                  <label>Quick presets</label>
+                  <div class="dl-theme-presets" id="theme-presets">
+                    <button type="button" class="dl-theme-swatch" data-name="Digilama" data-preset='{"bgMode":"solid","bgColor1":"#07070b","bgColor2":"#1a1a2e","bgAngle":135,"accentColor1":"#ff2e88","accentColor2":"#00e6c3","iconColor":"#9a9aab"}'>
+                      <span class="dl-swatch-dot" style="background:#07070b;"><i style="background:linear-gradient(135deg,#ff2e88,#00e6c3);"></i></span>
+                      <em>Digilama</em>
+                    </button>
+                    <button type="button" class="dl-theme-swatch" data-name="Sunset" data-preset='{"bgMode":"gradient","bgColor1":"#1a0f1f","bgColor2":"#3a1220","bgAngle":135,"accentColor1":"#ff7a45","accentColor2":"#ffb703","iconColor":"#ffd9b3"}'>
+                      <span class="dl-swatch-dot" style="background:linear-gradient(135deg,#1a0f1f,#3a1220);"><i style="background:linear-gradient(135deg,#ff7a45,#ffb703);"></i></span>
+                      <em>Sunset</em>
+                    </button>
+                    <button type="button" class="dl-theme-swatch" data-name="Ocean" data-preset='{"bgMode":"gradient","bgColor1":"#05131f","bgColor2":"#0a2740","bgAngle":135,"accentColor1":"#2dd4ff","accentColor2":"#3b82f6","iconColor":"#bfe8ff"}'>
+                      <span class="dl-swatch-dot" style="background:linear-gradient(135deg,#05131f,#0a2740);"><i style="background:linear-gradient(135deg,#2dd4ff,#3b82f6);"></i></span>
+                      <em>Ocean</em>
+                    </button>
+                    <button type="button" class="dl-theme-swatch" data-name="Forest" data-preset='{"bgMode":"gradient","bgColor1":"#0b1710","bgColor2":"#14291c","bgAngle":135,"accentColor1":"#34d399","accentColor2":"#a3e635","iconColor":"#c8f7dc"}'>
+                      <span class="dl-swatch-dot" style="background:linear-gradient(135deg,#0b1710,#14291c);"><i style="background:linear-gradient(135deg,#34d399,#a3e635);"></i></span>
+                      <em>Forest</em>
+                    </button>
+                    <button type="button" class="dl-theme-swatch" data-name="Royal" data-preset='{"bgMode":"gradient","bgColor1":"#150a24","bgColor2":"#2a1050","bgAngle":135,"accentColor1":"#a855f7","accentColor2":"#f472b6","iconColor":"#e9d5ff"}'>
+                      <span class="dl-swatch-dot" style="background:linear-gradient(135deg,#150a24,#2a1050);"><i style="background:linear-gradient(135deg,#a855f7,#f472b6);"></i></span>
+                      <em>Royal</em>
+                    </button>
+                    <button type="button" class="dl-theme-swatch" data-name="Mono" data-preset='{"bgMode":"solid","bgColor1":"#101014","bgColor2":"#101014","bgAngle":135,"accentColor1":"#e5e5ea","accentColor2":"#9ca3af","iconColor":"#d4d4d8"}'>
+                      <span class="dl-swatch-dot" style="background:#101014;"><i style="background:linear-gradient(135deg,#e5e5ea,#9ca3af);"></i></span>
+                      <em>Mono</em>
+                    </button>
+                  </div>
+                </div>
+                <div class="dl-field">
+                  <label>Background</label>
+                  <div style="display:flex; gap:16px; align-items:center; margin-bottom:8px;">
+                    <label style="display:flex; align-items:center; gap:6px; font-weight:400;"><input type="radio" name="bgMode" value="solid" style="width:auto;" <%= (!card.theme || card.theme.bgMode !== 'gradient') ? 'checked' : '' %> /> Solid color</label>
+                    <label style="display:flex; align-items:center; gap:6px; font-weight:400;"><input type="radio" name="bgMode" value="gradient" style="width:auto;" <%= (card.theme && card.theme.bgMode === 'gradient') ? 'checked' : '' %> /> Gradient</label>
+                  </div>
+                  <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <input type="color" name="bgColor1" value="<%= (card.theme && card.theme.bgColor1) || '#07070b' %>" class="dl-color-input" />
+                    <input type="color" name="bgColor2" id="bgColor2" value="<%= (card.theme && card.theme.bgColor2) || '#1a1a2e' %>" class="dl-color-input" style="<%= (card.theme && card.theme.bgMode === 'gradient') ? '' : 'display:none;' %>" />
+                    <label id="bgAngleWrap" style="display:flex; align-items:center; gap:6px; font-weight:400; <%= (card.theme && card.theme.bgMode === 'gradient') ? '' : 'display:none;' %>">
+                      Angle <input type="number" name="bgAngle" min="0" max="360" value="<%= (card.theme && card.theme.bgAngle) || 135 %>" style="width:70px;" />
+                    </label>
+                  </div>
+                </div>
+                <div class="dl-field">
+                  <label>Accent colors <span style="font-weight:400; color:var(--faint);">(buttons, active tab, icons on hover)</span></label>
+                  <div style="display:flex; gap:12px;">
+                    <input type="color" name="accentColor1" value="<%= (card.theme && card.theme.accentColor1) || '#ff2e88' %>" class="dl-color-input" />
+                    <input type="color" name="accentColor2" value="<%= (card.theme && card.theme.accentColor2) || '#00e6c3' %>" class="dl-color-input" />
+                  </div>
+                </div>
+                <div class="dl-row">
+                  <div class="dl-field">
+                    <label>Icon color</label>
+                    <input type="color" name="iconColor" value="<%= (card.theme && card.theme.iconColor) || '#9a9aab' %>" class="dl-color-input" />
+                  </div>
+                  <div class="dl-field">
+                    <label for="iconSize">Icon size</label>
+                    <select id="iconSize" name="iconSize">
+                      <option value="sm" <%= card.theme && card.theme.iconSize === 'sm' ? 'selected' : '' %>>Small</option>
+                      <option value="md" <%= !card.theme || card.theme.iconSize === 'md' ? 'selected' : '' %>>Medium</option>
+                      <option value="lg" <%= card.theme && card.theme.iconSize === 'lg' ? 'selected' : '' %>>Large</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dl-appearance-preview">
+                <p class="dl-hint" style="margin:0 0 10px; text-align:center; text-transform:uppercase; letter-spacing:0.5px; font-size:11px; font-weight:700;">Live preview</p>
+                <div class="dl-preview-phone">
+                  <div class="dl-theme-preview-wrap" id="theme-preview-wrap">
+                    <div class="dl-profile-card dl-theme-preview-card" id="theme-preview-card">
+                      <div class="dl-tap-badge"><span class="dot"></span> Connected via NFC</div>
+                      <div class="dl-avatar" style="margin-top:0;">
+                        <%= (card.fullName || 'Y').trim().charAt(0).toUpperCase() %>
+                      </div>
+                      <p style="font-size:16px; font-weight:800; margin:10px 0 2px;"><%= card.fullName || 'Your name' %></p>
+                      <p style="font-size:11px; color:var(--muted); margin:0 0 14px;"><%= card.tagline || kindMeta.tagline %></p>
+                      <div class="dl-social-row" style="margin-top:0;">
+                        <span class="dl-social-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/></svg></span>
+                        <span class="dl-social-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 15l6-6M8.5 11 7 12.5a3 3 0 104.2 4.2L13 15M15.5 13 17 11.5a3 3 0 00-4.2-4.2L11 9"/></svg></span>
+                        <span class="dl-social-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 6.5 8 6 8-6"/></svg></span>
+                      </div>
+                      <button type="button" class="dl-btn primary block" style="margin-top:16px; pointer-events:none;">Preview</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>

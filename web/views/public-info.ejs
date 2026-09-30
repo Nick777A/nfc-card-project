@@ -1,0 +1,20 @@
+<%- include('partials/kind-header') %>
+
+      <% if (card.infoBody) { %>
+        <p class="dl-schedule-text dl-profile-item" style="--d:4"><%= card.infoBody %></p>
+      <% } %>
+
+      <% if (card.galleryUrls && card.galleryUrls.length) { %>
+        <div class="dl-gallery-grid dl-profile-item" style="--d:5; margin-bottom:18px;">
+          <% card.galleryUrls.forEach(function(url) { %><img src="<%= url %>" alt="" /><% }) %>
+        </div>
+      <% } %>
+
+      <% if (card.address) { %>
+        <div class="dl-profile-item" style="--d:6">
+          <p class="dl-address-text"><%= card.address %></p>
+          <a class="dl-btn secondary block" href="https://www.google.com/maps/search/?api=1&query=<%= encodeURIComponent(card.address) %>" target="_blank" rel="noopener"><%= t('openInMaps') %></a>
+        </div>
+      <% } %>
+
+<%- include('partials/kind-footer') %>

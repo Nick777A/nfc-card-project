@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Edit card — Digilama</title>
+  <%- include('partials/head-digilama') %>
+</head>
+<body class="digilama">
+<%- include('partials/edit-header') %>
+
+        <h2 class="dl-form-section-title"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--teal)" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.01"/></svg> Info page</h2>
+        <div class="dl-field">
+          <label for="fullName">Title</label>
+          <input type="text" id="fullName" name="fullName" placeholder="e.g. The Old Watermill" value="<%= card.fullName || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="tagline">Subtitle</label>
+          <input type="text" id="tagline" name="tagline" placeholder="e.g. Built in 1742" value="<%= card.tagline || '' %>" />
+        </div>
+        <div class="dl-field">
+          <label for="infoBody">Description</label>
+          <textarea id="infoBody" name="infoBody" rows="8" placeholder="Tell the full story here — as long as you like."><%= card.infoBody || '' %></textarea>
+        </div>
+        <div class="dl-field">
+          <label for="address">Location</label>
+          <input type="text" id="address" name="address" value="<%= card.address || '' %>" />
+        </div>
+        <div class="dl-row">
+          <div class="dl-field">
+            <label for="photo">Icon / logo</label>
+            <input type="file" id="photo" name="photo" accept="image/*" />
+          </div>
+          <div class="dl-field">
+            <label for="banner">Cover photo</label>
+            <input type="file" id="banner" name="banner" accept="image/*" />
+            <% if (card.bannerUrl) { %><p class="dl-hint">Banner set — upload a new one to replace it.</p><% } %>
+          </div>
+        </div>
+        <div class="dl-field">
+          <label for="gallery">Photo gallery (up to 6)</label>
+          <input type="file" id="gallery" name="gallery" accept="image/*" multiple />
+          <% if (card.galleryUrls && card.galleryUrls.length) { %><p class="dl-hint"><%= card.galleryUrls.length %> photo(s) uploaded — uploading new ones replaces the whole gallery.</p><% } %>
+        </div>
+
+<%- include('partials/appearance-editor', { card: card, kindMeta: kindMeta }) %>
+
+<%- include('partials/edit-footer') %>

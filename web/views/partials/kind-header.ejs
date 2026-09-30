@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+  <title><%= card.fullName || card.label %></title>
+  <%- include('head-digilama') %>
+  <%- include('og-tags') %>
+</head>
+<body class="digilama">
+  <div class="dl-profile-wrap" style="<%= wrapStyle %>">
+    <div class="dl-profile-card dl-profile-reveal" style="<%= cardStyle %>">
+      <a class="dl-profile-logo" href="/" target="_blank" rel="noopener" aria-label="Digilama">digilama</a>
+
+      <div class="dl-profile-lang">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.5 2.7 3.8 6 3.8 9.5s-1.3 6.8-3.8 9.5c-2.5-2.7-3.8-6-3.8-9.5s1.3-6.8 3.8-9.5Z"/></svg>
+        <select id="lang-select" aria-label="Language">
+          <% languages.forEach(function(l) { %>
+            <option value="<%= l.code %>" <%= l.code === lang ? 'selected' : '' %>><%= l.label %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="dl-tap-badge"><span class="dot"></span> <%= t('connectedBadge') %></div>
+
+      <div class="dl-avatar dl-profile-item <%= card.photoUrl ? 'has-photo' : '' %>" style="--d:1">
+        <span class="dl-avatar-ring"></span>
+        <% if (card.photoUrl) { %>
+          <img src="<%= card.photoUrl %>" alt="<%= card.fullName %>" width="104" height="104" />
+        <% } else { %>
+          <%= (card.fullName || card.label || '?').trim().charAt(0).toUpperCase() %>
+        <% } %>
+      </div>
+      <p class="dl-profile-name dl-profile-item" style="--d:2"><%= card.fullName || card.label %></p>
+      <% if (card.tagline) { %><p class="dl-profile-sub dl-profile-item" style="--d:3"><%= card.tagline %></p><% } %>

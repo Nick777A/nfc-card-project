@@ -1,0 +1,22 @@
+<%- include('partials/kind-header') %>
+
+      <div class="dl-profile-item" style="--d:4; text-align:left;">
+        <% if (card.portfolioItems && card.portfolioItems.length) { %>
+          <div class="dl-portfolio-grid">
+            <% card.portfolioItems.forEach(function(item) { %>
+              <% var Tag = item.link ? 'a' : 'div'; %>
+              <<%= Tag %> class="dl-portfolio-item" <% if (item.link) { %>href="<%= item.link %>" target="_blank" rel="noopener"<% } %>>
+                <% if (item.imageUrl) { %><img src="<%= item.imageUrl %>" alt="" /><% } %>
+                <div class="dl-portfolio-body">
+                  <p class="dl-portfolio-title"><%= item.title %></p>
+                  <% if (item.description) { %><p class="dl-portfolio-desc"><%= item.description %></p><% } %>
+                </div>
+              </<%= Tag %>>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="dl-hint" style="text-align:center;"><%= t('portfolioEmpty') %></p>
+        <% } %>
+      </div>
+
+<%- include('partials/kind-footer') %>

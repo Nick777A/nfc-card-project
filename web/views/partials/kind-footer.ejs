@@ -1,0 +1,14 @@
+      <div class="dl-qr-fallback dl-profile-item" style="--d:9">
+        <p class="dl-qr-fallback-label"><%= t('qrFallbackLabel') %></p>
+        <img src="<%= qrDataUrl %>" alt="QR" width="132" height="132" />
+        <p class="dl-hint"><%= t('qrFallbackHint') %></p>
+      </div>
+
+      <p class="dl-hint dl-profile-item" style="--d:10; margin-top:20px; text-align:center;"><a href="/privacy?lang=<%= lang %>"><%= t('privacyLabel') %></a></p>
+    </div>
+  </div>
+
+  <script src="/js/lang-switcher.js"></script>
+  <% if (typeof extraScript !== 'undefined' && extraScript) { %><script src="<%= extraScript %>"></script><% } %>
+</body>
+</html>
