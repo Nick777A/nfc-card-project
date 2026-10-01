@@ -93,6 +93,17 @@ const loginSlowDown = slowDown({
   maxDelayMs: 5000
 });
 
+// Guards anonymous public forms (booking requests, feedback) against scripted
+// spam — generous enough for a real visitor, tight enough to stop a bot from
+// filling a calendar or flooding a feedback box.
+const publicFormLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many submissions from this address — please try again later.'
+});
+
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 
@@ -933,7 +944,14 @@ app.post('/admin/cards/:id/duplicate', requireAuth, (req, res) => {
   const source = db.getCardById(req.params.id);
   if (!source) return res.status(404).send('Карточка не найдена');
 
-  const { id, slug, createdAt, viewCount, lastViewedAt, updatedAt, active, ...content } = source;
+  // Never carry over ownership, stock-batch membership, or anyone's private
+  // submissions — a duplicate is a fresh, unowned template, not a clone of
+  // someone else's live card and its visitors' data.
+  const {
+    id, slug, createdAt, viewCount, lastViewedAt, updatedAt, active,
+    customerId, batchId, claimable, bookings, reviewFeedback,
+    ...content
+  } = source;
   const copy = {
     id: crypto.randomUUID(),
     slug: generateSlug(),
@@ -941,6 +959,9 @@ app.post('/admin/cards/:id/duplicate', requireAuth, (req, res) => {
     viewCount: 0,
     lastViewedAt: null,
     ...content,
+    customerId: null,
+    bookings: [],
+    reviewFeedback: [],
     active: true, // a duplicate is a fresh start even if the source was paused
     label: `${content.label} (копия)`
   };
@@ -1483,9 +1504,9 @@ async function renderCardKindPublic(kind, card, req, res, t, lang) {
   return res.status(404).render('not-found', { t, lang, languages: LANGUAGES });
 }
 
-app.post('/u/:slug/feedback', (req, res) => {
+app.post('/u/:slug/feedback', publicFormLimiter, (req, res) => {
   const card = db.getCardBySlug(req.params.slug);
-  if (!card || card.type !== 'profile' || card.kind !== 'review' || card.reviewMode !== 'internal') {
+  if (!card || card.active === false || card.type !== 'profile' || card.kind !== 'review' || card.reviewMode !== 'internal') {
     return res.status(404).send('Not found');
   }
   const comment = (req.body.comment || '').trim().slice(0, 2000);
@@ -1500,15 +1521,19 @@ app.post('/u/:slug/feedback', (req, res) => {
   res.redirect(`/u/${card.slug}?sent=1`);
 });
 
-app.post('/u/:slug/book', (req, res) => {
+app.post('/u/:slug/book', publicFormLimiter, (req, res) => {
   const card = db.getCardBySlug(req.params.slug);
-  if (!card || card.type !== 'profile' || card.kind !== 'booking') return res.status(404).send('Not found');
+  if (!card || card.active === false || card.type !== 'profile' || card.kind !== 'booking') return res.status(404).send('Not found');
   const { date, time } = req.body;
   const name = (req.body.name || '').trim();
   if (!name) return res.redirect(`/u/${card.slug}?bookError=1`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '') || !/^\d{2}:\d{2}$/.test(time || '')) {
     return res.redirect(`/u/${card.slug}?bookError=1`);
   }
+  const windowDays = card.bookingWindowDays || 14;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const lastBookableStr = new Date(Date.now() + windowDays * 86400000).toISOString().slice(0, 10);
+  if (date < todayStr || date > lastBookableStr) return res.redirect(`/u/${card.slug}?bookError=1`);
   const durationMin = card.bookingDurationMin || 30;
   const d = new Date(`${date}T00:00:00`);
   const weekday = WEEKDAYS[(d.getDay() + 6) % 7];
