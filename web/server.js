@@ -1127,9 +1127,15 @@ app.post('/admin/cards/:id/delete', requireAuth, (req, res) => {
 // claimable state — e.g. when a buyer abandoned registration halfway through
 // or claimed the wrong card by mistake. The customer account itself, if one
 // was created, is left untouched; only this card's link to it is cleared.
+// Everything being wiped is kept in resetSnapshot for 30 days so the reset
+// can be undone, matching the recoverable "Delete" → trash pattern.
 app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
   const card = db.getCardById(req.params.id);
   if (!card || !card.batchId) return res.status(404).send('Карточка не найдена или не является карточкой стока');
+  const {
+    id, slug, createdAt, viewCount, lastViewedAt, batchId, deletedAt, resetSnapshot,
+    ...snapshotFields
+  } = card;
   db.updateCard(card.id, {
     customerId: null,
     claimable: true,
@@ -1140,9 +1146,20 @@ app.post('/admin/cards/:id/unclaim', requireAuth, (req, res) => {
     scheduleText: '', address: '', website: '', theme: null,
     reviewMode: 'external', reviewGoogleUrl: '', reviewFeedback: [],
     menuCategories: [], portfolioItems: [], infoBody: '',
-    bookingAvailability: {}, bookingDurationMin: 30, bookingWindowDays: 14, bookings: []
+    bookingAvailability: {}, bookingDurationMin: 30, bookingWindowDays: 14, bookings: [],
+    resetSnapshot: { ...snapshotFields, resetAt: Date.now() }
   });
-  res.redirect('/admin');
+  res.redirect(`/admin/cards/${card.id}`);
+});
+
+// Undoes a reset within its 30-day window, restoring the card to exactly
+// what it was right before "Сбросить" was clicked.
+app.post('/admin/cards/:id/undo-reset', requireAuth, (req, res) => {
+  const card = db.getCardById(req.params.id);
+  if (!card || !card.resetSnapshot) return res.status(404).send('Нет сброса для отмены');
+  const { resetAt, ...fields } = card.resetSnapshot;
+  db.updateCard(card.id, { ...fields, resetSnapshot: null });
+  res.redirect(`/admin/cards/${card.id}`);
 });
 
 // ---------- Trash: a delete moves a card here for 30 days before it's gone

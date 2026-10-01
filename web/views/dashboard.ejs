@@ -88,7 +88,7 @@
                   <a href="/admin/cards/<%= card.id %>">Открыть</a>
                   <a href="/admin/cards/<%= card.id %>/edit">Изменить</a>
                   <% if (card.batchId && card.customerId) { %>
-                    <form method="post" action="/admin/cards/<%= card.id %>/unclaim" class="inline-form" data-confirm="БЕЗВОЗВРАТНО удалит профиль, меню/портфолио и ВСЕ бронирования этого владельца (в отличие от «Удалить», отменить это нельзя). Сбросить карточку «<%= card.label %>»?">
+                    <form method="post" action="/admin/cards/<%= card.id %>/unclaim" class="inline-form" data-confirm="Снимет текущего владельца и очистит профиль, меню/портфолио и бронирования. Можно отменить в течение 30 дней со страницы карточки. Сбросить карточку «<%= card.label %>»?">
                       <button type="submit" class="link-button" style="color:var(--danger, #ff6b6b);">Сбросить</button>
                     </form>
                   <% } %>

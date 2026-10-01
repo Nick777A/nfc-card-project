@@ -90,6 +90,116 @@
       </table>
     </div>
 
+    <% if (card.type === 'profile' && card.kind) { %>
+      <div class="card" style="margin-top:20px;">
+        <h2 style="margin-top:0;">Содержимое карточки (<%= card.kind %>)</h2>
+
+        <% if (card.kind === 'website') { %>
+          <p><strong>Сайт:</strong>
+            <% if (card.website) { %><a href="<%= card.website %>" target="_blank"><%= card.website %></a><% } else { %><span class="hint">не указан</span><% } %>
+          </p>
+        <% } %>
+
+        <% if (card.kind === 'review') { %>
+          <p><strong>Режим:</strong> <%= card.reviewMode === 'internal' ? 'Отзывы внутри Digilama' : 'Ссылка на внешний сайт' %></p>
+          <% if (card.reviewMode !== 'internal') { %>
+            <p><strong>Ссылка:</strong> <% if (card.reviewGoogleUrl) { %><a href="<%= card.reviewGoogleUrl %>" target="_blank"><%= card.reviewGoogleUrl %></a><% } else { %><span class="hint">не указана</span><% } %></p>
+          <% } else { %>
+            <p><strong>Получено отзывов:</strong> <%= (card.reviewFeedback || []).length %></p>
+            <% if (card.reviewFeedback && card.reviewFeedback.length) { %>
+              <table class="cards-table">
+                <thead><tr><th>Имя</th><th>Комментарий</th><th>Дата</th></tr></thead>
+                <tbody>
+                  <% card.reviewFeedback.slice(0, 50).forEach(function(f) { %>
+                    <tr><td><%= f.name || 'Anonymous' %></td><td><%= f.comment %></td><td><%= new Date(f.createdAt).toLocaleString('ru-RU') %></td></tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            <% } %>
+          <% } %>
+        <% } %>
+
+        <% if (card.kind === 'menu') { %>
+          <% if (!card.menuCategories || !card.menuCategories.length) { %>
+            <p class="hint">Меню пока не заполнено.</p>
+          <% } else { card.menuCategories.forEach(function(cat) { %>
+            <h3 style="margin-bottom:6px;"><%= cat.name %></h3>
+            <table class="cards-table" style="margin-bottom:12px;">
+              <tbody>
+                <% (cat.items || []).forEach(function(item) { %>
+                  <tr><td><%= item.name %></td><td><%= item.description || '' %></td><td><%= item.price || '' %></td></tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% }) } %>
+        <% } %>
+
+        <% if (card.kind === 'portfolio') { %>
+          <% if (!card.portfolioItems || !card.portfolioItems.length) { %>
+            <p class="hint">Портфолио пока не заполнено.</p>
+          <% } else { %>
+            <table class="cards-table">
+              <thead><tr><th>Фото</th><th>Название</th><th>Описание</th><th>Ссылка</th></tr></thead>
+              <tbody>
+                <% card.portfolioItems.forEach(function(item) { %>
+                  <tr>
+                    <td><% if (item.imageUrl) { %><img src="<%= item.imageUrl %>" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" /><% } %></td>
+                    <td><%= item.title %></td>
+                    <td><%= item.description || '' %></td>
+                    <td><% if (item.link) { %><a href="<%= item.link %>" target="_blank">ссылка</a><% } %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        <% } %>
+
+        <% if (card.kind === 'info') { %>
+          <% if (card.infoBody) { %>
+            <p style="white-space:pre-wrap;"><%= card.infoBody %></p>
+          <% } else { %>
+            <p class="hint">Описание пока не заполнено.</p>
+          <% } %>
+        <% } %>
+
+        <% if (card.kind === 'booking') { %>
+          <p><strong>Длительность:</strong> <%= card.bookingDurationMin || 30 %> мин · <strong>Горизонт записи:</strong> <%= card.bookingWindowDays || 14 %> дней</p>
+          <p><strong>Расписание:</strong>
+            <% const dayLabels = { mon: 'Пн', tue: 'Вт', wed: 'Ср', thu: 'Чт', fri: 'Пт', sat: 'Сб', sun: 'Вс' }; %>
+            <% const avail = card.bookingAvailability || {}; %>
+            <% const openDays = Object.keys(dayLabels).filter((d) => avail[d] && avail[d].length); %>
+            <% if (!openDays.length) { %><span class="hint">не настроено</span><% } else { %>
+              <%= openDays.map((d) => `${dayLabels[d]}: ${avail[d].map((r) => `${r.start}–${r.end}`).join(', ')}`).join(' · ') %>
+            <% } %>
+          </p>
+          <% const activeBookings = (card.bookings || []).filter((b) => b.status !== 'cancelled'); %>
+          <p><strong>Записей:</strong> <%= activeBookings.length %></p>
+          <% if (activeBookings.length) { %>
+            <table class="cards-table">
+              <thead><tr><th>Дата</th><th>Время</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Заметка</th></tr></thead>
+              <tbody>
+                <% activeBookings.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).forEach(function(b) { %>
+                  <tr><td><%= b.date %></td><td><%= b.time %></td><td><%= b.name %></td><td><%= b.phone || '' %></td><td><%= b.email || '' %></td><td><%= b.note || '' %></td></tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        <% } %>
+      </div>
+    <% } %>
+
+    <% if (card.resetSnapshot) { %>
+      <div class="card" style="margin-top:20px;">
+        <p class="hint">
+          Эта карточка была сброшена <%= new Date(card.resetSnapshot.resetAt).toLocaleString('ru-RU') %> —
+          предыдущее содержимое сохранено и можно восстановить до <%= new Date(card.resetSnapshot.resetAt + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('ru-RU') %>.
+        </p>
+        <form method="post" action="/admin/cards/<%= card.id %>/undo-reset" class="inline-form" data-confirm="Отменить сброс и вернуть владельца и всё содержимое карточки «<%= card.resetSnapshot.label %>»?">
+          <button type="submit" class="btn secondary">Отменить сброс</button>
+        </form>
+      </div>
+    <% } %>
+
     <form method="post" action="/admin/cards/<%= card.id %>/delete" style="margin-top:16px;" id="delete-card-form">
       <button type="submit" class="btn danger">Удалить карточку</button>
     </form>

@@ -117,6 +117,18 @@ function purgeOldTrash() {
   if (state.cards.length !== before) persist();
 }
 
+/** Drops reset snapshots (the "undo reset" data) once their 30-day recovery window has passed. */
+function purgeOldResetSnapshots() {
+  let changed = false;
+  state.cards.forEach((c) => {
+    if (c.resetSnapshot && Date.now() - c.resetSnapshot.resetAt > TRASH_RETENTION_MS) {
+      c.resetSnapshot = null;
+      changed = true;
+    }
+  });
+  if (changed) persist();
+}
+
 module.exports = {
   init,
   getAdmin() {
@@ -165,6 +177,7 @@ module.exports = {
     return Math.max(0, until - Date.now());
   },
   listCards() {
+    purgeOldResetSnapshots();
     return state.cards
       .filter((c) => !c.deletedAt)
       .sort((a, b) => b.createdAt - a.createdAt);
